@@ -15,6 +15,7 @@ struct MoreInfoView: View {
     var body: some View {
         NavigationStack {
             VStack{
+                
                 HeaderView(title: "More Info", pageController: pageController)
                 Spacer()
                 HStack(spacing: 0){
