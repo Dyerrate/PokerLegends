@@ -12,6 +12,7 @@ struct MainView: View {
     
     @StateObject var userManager = UserManager()
     @StateObject var pageController = PageController()
+    //This changed
     
     var body: some View {
         
