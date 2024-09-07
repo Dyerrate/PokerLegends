@@ -1,0 +1,495 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		58128B172C55577600E9AA9B /* ShoppingItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B162C55577600E9AA9B /* ShoppingItemCard.swift */; };
+		58128B192C555CD000E9AA9B /* ShoppingItemModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B182C555CD000E9AA9B /* ShoppingItemModel.swift */; };
+		58128B1B2C55678100E9AA9B /* PrizeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B1A2C55678100E9AA9B /* PrizeTabView.swift */; };
+		58128B1D2C56BD9A00E9AA9B /* RewardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B1C2C56BD9A00E9AA9B /* RewardViewModel.swift */; };
+		58128B1F2C56C3B200E9AA9B /* RewardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B1E2C56C3B200E9AA9B /* RewardView.swift */; };
+		5882D08A2C508F5400A39613 /* ShopPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D0892C508F5400A39613 /* ShopPage.swift */; };
+		5882D08D2C508FE100A39613 /* SelectGameMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D08C2C508FE100A39613 /* SelectGameMode.swift */; };
+		5882D08F2C51E44300A39613 /* MoreInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D08E2C51E44300A39613 /* MoreInfoView.swift */; };
+		5882D0922C51EAF800A39613 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D0912C51EAF800A39613 /* HeaderView.swift */; };
+		5882D0B52C5479F500A39613 /* GameDisplayCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D0B42C5479F500A39613 /* GameDisplayCard.swift */; };
+		5882D0B82C547D5900A39613 /* GameCardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D0B72C547D5900A39613 /* GameCardModel.swift */; };
+		589AE3492C67C14C00705B0E /* WelcomeDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE3482C67C14C00705B0E /* WelcomeDisplay.swift */; };
+		589AE34B2C67C36500705B0E /* UserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE34A2C67C36500705B0E /* UserManager.swift */; };
+		589AE34D2C67C5DB00705B0E /* SinginButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE34C2C67C5DB00705B0E /* SinginButtonView.swift */; };
+		589AE3502C67DE7500705B0E /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE34F2C67DE7500705B0E /* UserModel.swift */; };
+		589AE3522C67DFF500705B0E /* GameStatsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE3512C67DFF500705B0E /* GameStatsModel.swift */; };
+		589AE3542C67E13200705B0E /* UserDateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE3532C67E13200705B0E /* UserDateModel.swift */; };
+		589AE3562C67E50500705B0E /* PageController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE3552C67E50500705B0E /* PageController.swift */; };
+		589AE3582C68087600705B0E /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589AE3572C68087600705B0E /* ProfileView.swift */; };
+		589F0EAC2C31E7C200DDE7E6 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 589F0EAB2C31E7C200DDE7E6 /* RealityKitContent */; };
+		589F0EAE2C31E7C200DDE7E6 /* PokerLegendsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589F0EAD2C31E7C200DDE7E6 /* PokerLegendsApp.swift */; };
+		589F0EB02C31E7C200DDE7E6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589F0EAF2C31E7C200DDE7E6 /* ContentView.swift */; };
+		589F0EB22C31E7C200DDE7E6 /* ImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589F0EB12C31E7C200DDE7E6 /* ImmersiveView.swift */; };
+		589F0EB42C31E7C300DDE7E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 589F0EB32C31E7C300DDE7E6 /* Assets.xcassets */; };
+		589F0EB72C31E7C300DDE7E6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 589F0EB62C31E7C300DDE7E6 /* Preview Assets.xcassets */; };
+		58B8BE102C5E830400503406 /* InfoPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B8BE0F2C5E830400503406 /* InfoPanel.swift */; };
+		58C0F9762C742D6A00B4C80E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C0F9752C742D6A00B4C80E /* MainView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		58128B162C55577600E9AA9B /* ShoppingItemCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingItemCard.swift; sourceTree = "<group>"; };
+		58128B182C555CD000E9AA9B /* ShoppingItemModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingItemModel.swift; sourceTree = "<group>"; };
+		58128B1A2C55678100E9AA9B /* PrizeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeTabView.swift; sourceTree = "<group>"; };
+		58128B1C2C56BD9A00E9AA9B /* RewardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardViewModel.swift; sourceTree = "<group>"; };
+		58128B1E2C56C3B200E9AA9B /* RewardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardView.swift; sourceTree = "<group>"; };
+		5882D0892C508F5400A39613 /* ShopPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopPage.swift; sourceTree = "<group>"; };
+		5882D08C2C508FE100A39613 /* SelectGameMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectGameMode.swift; sourceTree = "<group>"; };
+		5882D08E2C51E44300A39613 /* MoreInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreInfoView.swift; sourceTree = "<group>"; };
+		5882D0912C51EAF800A39613 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
+		5882D0B42C5479F500A39613 /* GameDisplayCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDisplayCard.swift; sourceTree = "<group>"; };
+		5882D0B72C547D5900A39613 /* GameCardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCardModel.swift; sourceTree = "<group>"; };
+		589AE3482C67C14C00705B0E /* WelcomeDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeDisplay.swift; sourceTree = "<group>"; };
+		589AE34A2C67C36500705B0E /* UserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManager.swift; sourceTree = "<group>"; };
+		589AE34C2C67C5DB00705B0E /* SinginButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SinginButtonView.swift; sourceTree = "<group>"; };
+		589AE34F2C67DE7500705B0E /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
+		589AE3512C67DFF500705B0E /* GameStatsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsModel.swift; sourceTree = "<group>"; };
+		589AE3532C67E13200705B0E /* UserDateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDateModel.swift; sourceTree = "<group>"; };
+		589AE3552C67E50500705B0E /* PageController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageController.swift; sourceTree = "<group>"; };
+		589AE3572C68087600705B0E /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		589F0EA62C31E7C200DDE7E6 /* PokerLegends.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PokerLegends.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		589F0EAA2C31E7C200DDE7E6 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		589F0EAD2C31E7C200DDE7E6 /* PokerLegendsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokerLegendsApp.swift; sourceTree = "<group>"; };
+		589F0EAF2C31E7C200DDE7E6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		589F0EB12C31E7C200DDE7E6 /* ImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveView.swift; sourceTree = "<group>"; };
+		589F0EB32C31E7C300DDE7E6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		589F0EB62C31E7C300DDE7E6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		589F0EB82C31E7C300DDE7E6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		58B8BE0F2C5E830400503406 /* InfoPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoPanel.swift; sourceTree = "<group>"; };
+		58C0F9752C742D6A00B4C80E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		589F0EA32C31E7C200DDE7E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				589F0EAC2C31E7C200DDE7E6 /* RealityKitContent in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5882D08B2C508F5F00A39613 /* TabViews */ = {
+			isa = PBXGroup;
+			children = (
+				5882D0892C508F5400A39613 /* ShopPage.swift */,
+				5882D08C2C508FE100A39613 /* SelectGameMode.swift */,
+				5882D08E2C51E44300A39613 /* MoreInfoView.swift */,
+				58128B1A2C55678100E9AA9B /* PrizeTabView.swift */,
+				589AE3572C68087600705B0E /* ProfileView.swift */,
+			);
+			path = TabViews;
+			sourceTree = "<group>";
+		};
+		5882D0902C51EAD200A39613 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				5882D0912C51EAF800A39613 /* HeaderView.swift */,
+				5882D0B42C5479F500A39613 /* GameDisplayCard.swift */,
+				58128B162C55577600E9AA9B /* ShoppingItemCard.swift */,
+				58128B1E2C56C3B200E9AA9B /* RewardView.swift */,
+				58B8BE0F2C5E830400503406 /* InfoPanel.swift */,
+				589AE34C2C67C5DB00705B0E /* SinginButtonView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		5882D0B62C547D4200A39613 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				5882D0B72C547D5900A39613 /* GameCardModel.swift */,
+				58128B182C555CD000E9AA9B /* ShoppingItemModel.swift */,
+				58128B1C2C56BD9A00E9AA9B /* RewardViewModel.swift */,
+				589AE34F2C67DE7500705B0E /* UserModel.swift */,
+				589AE3512C67DFF500705B0E /* GameStatsModel.swift */,
+				589AE3532C67E13200705B0E /* UserDateModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		589AE34E2C67D82500705B0E /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				589AE34A2C67C36500705B0E /* UserManager.swift */,
+				589AE3552C67E50500705B0E /* PageController.swift */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
+		589F0E9D2C31E7C200DDE7E6 = {
+			isa = PBXGroup;
+			children = (
+				589F0EA82C31E7C200DDE7E6 /* PokerLegends */,
+				589F0EA92C31E7C200DDE7E6 /* Packages */,
+				589F0EA72C31E7C200DDE7E6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		589F0EA72C31E7C200DDE7E6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				589F0EA62C31E7C200DDE7E6 /* PokerLegends.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		589F0EA82C31E7C200DDE7E6 /* PokerLegends */ = {
+			isa = PBXGroup;
+			children = (
+				58C0F9742C742D5900B4C80E /* Main Views */,
+				589AE34E2C67D82500705B0E /* Controller */,
+				5882D0B62C547D4200A39613 /* Models */,
+				5882D0902C51EAD200A39613 /* Components */,
+				5882D08B2C508F5F00A39613 /* TabViews */,
+				589F0EB12C31E7C200DDE7E6 /* ImmersiveView.swift */,
+				589F0EB32C31E7C300DDE7E6 /* Assets.xcassets */,
+				589F0EB82C31E7C300DDE7E6 /* Info.plist */,
+				589F0EB52C31E7C300DDE7E6 /* Preview Content */,
+			);
+			path = PokerLegends;
+			sourceTree = "<group>";
+		};
+		589F0EA92C31E7C200DDE7E6 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				589F0EAA2C31E7C200DDE7E6 /* RealityKitContent */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		589F0EB52C31E7C300DDE7E6 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				589F0EB62C31E7C300DDE7E6 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		58C0F9742C742D5900B4C80E /* Main Views */ = {
+			isa = PBXGroup;
+			children = (
+				589AE3482C67C14C00705B0E /* WelcomeDisplay.swift */,
+				589F0EAD2C31E7C200DDE7E6 /* PokerLegendsApp.swift */,
+				589F0EAF2C31E7C200DDE7E6 /* ContentView.swift */,
+				58C0F9752C742D6A00B4C80E /* MainView.swift */,
+			);
+			path = "Main Views";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		589F0EA52C31E7C200DDE7E6 /* PokerLegends */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 589F0EBB2C31E7C300DDE7E6 /* Build configuration list for PBXNativeTarget "PokerLegends" */;
+			buildPhases = (
+				589F0EA22C31E7C200DDE7E6 /* Sources */,
+				589F0EA32C31E7C200DDE7E6 /* Frameworks */,
+				589F0EA42C31E7C200DDE7E6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PokerLegends;
+			packageProductDependencies = (
+				589F0EAB2C31E7C200DDE7E6 /* RealityKitContent */,
+			);
+			productName = PokerLegends;
+			productReference = 589F0EA62C31E7C200DDE7E6 /* PokerLegends.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		589F0E9E2C31E7C200DDE7E6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					589F0EA52C31E7C200DDE7E6 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 589F0EA12C31E7C200DDE7E6 /* Build configuration list for PBXProject "PokerLegends" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 589F0E9D2C31E7C200DDE7E6;
+			productRefGroup = 589F0EA72C31E7C200DDE7E6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				589F0EA52C31E7C200DDE7E6 /* PokerLegends */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		589F0EA42C31E7C200DDE7E6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				589F0EB72C31E7C300DDE7E6 /* Preview Assets.xcassets in Resources */,
+				589F0EB42C31E7C300DDE7E6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		589F0EA22C31E7C200DDE7E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				58128B192C555CD000E9AA9B /* ShoppingItemModel.swift in Sources */,
+				58C0F9762C742D6A00B4C80E /* MainView.swift in Sources */,
+				589AE3492C67C14C00705B0E /* WelcomeDisplay.swift in Sources */,
+				589AE3562C67E50500705B0E /* PageController.swift in Sources */,
+				589AE34D2C67C5DB00705B0E /* SinginButtonView.swift in Sources */,
+				58128B1B2C55678100E9AA9B /* PrizeTabView.swift in Sources */,
+				5882D08D2C508FE100A39613 /* SelectGameMode.swift in Sources */,
+				589AE3522C67DFF500705B0E /* GameStatsModel.swift in Sources */,
+				5882D08F2C51E44300A39613 /* MoreInfoView.swift in Sources */,
+				5882D0B52C5479F500A39613 /* GameDisplayCard.swift in Sources */,
+				58B8BE102C5E830400503406 /* InfoPanel.swift in Sources */,
+				58128B1D2C56BD9A00E9AA9B /* RewardViewModel.swift in Sources */,
+				5882D08A2C508F5400A39613 /* ShopPage.swift in Sources */,
+				589F0EB02C31E7C200DDE7E6 /* ContentView.swift in Sources */,
+				589F0EAE2C31E7C200DDE7E6 /* PokerLegendsApp.swift in Sources */,
+				589AE3542C67E13200705B0E /* UserDateModel.swift in Sources */,
+				58128B1F2C56C3B200E9AA9B /* RewardView.swift in Sources */,
+				589F0EB22C31E7C200DDE7E6 /* ImmersiveView.swift in Sources */,
+				589AE3582C68087600705B0E /* ProfileView.swift in Sources */,
+				5882D0B82C547D5900A39613 /* GameCardModel.swift in Sources */,
+				589AE3502C67DE7500705B0E /* UserModel.swift in Sources */,
+				58128B172C55577600E9AA9B /* ShoppingItemCard.swift in Sources */,
+				5882D0922C51EAF800A39613 /* HeaderView.swift in Sources */,
+				589AE34B2C67C36500705B0E /* UserManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		589F0EB92C31E7C300DDE7E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = xros;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				XROS_DEPLOYMENT_TARGET = 1.2;
+			};
+			name = Debug;
+		};
+		589F0EBA2C31E7C300DDE7E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = xros;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				XROS_DEPLOYMENT_TARGET = 1.2;
+			};
+			name = Release;
+		};
+		589F0EBC2C31E7C300DDE7E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"PokerLegends/Preview Content\"";
+				DEVELOPMENT_TEAM = YHUTW85LXG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.vision.ARCheck.PokerLegends;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+			};
+			name = Debug;
+		};
+		589F0EBD2C31E7C300DDE7E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"PokerLegends/Preview Content\"";
+				DEVELOPMENT_TEAM = YHUTW85LXG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.vision.ARCheck.PokerLegends;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		589F0EA12C31E7C200DDE7E6 /* Build configuration list for PBXProject "PokerLegends" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				589F0EB92C31E7C300DDE7E6 /* Debug */,
+				589F0EBA2C31E7C300DDE7E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		589F0EBB2C31E7C300DDE7E6 /* Build configuration list for PBXNativeTarget "PokerLegends" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				589F0EBC2C31E7C300DDE7E6 /* Debug */,
+				589F0EBD2C31E7C300DDE7E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		589F0EAB2C31E7C200DDE7E6 /* RealityKitContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RealityKitContent;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 589F0E9E2C31E7C200DDE7E6 /* Project object */;
+}
