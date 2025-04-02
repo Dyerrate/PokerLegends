@@ -10,18 +10,14 @@ import SwiftUI
 
 struct MainView: View {
     
-    @StateObject var userManager = UserManager()
-    @StateObject var pageController = PageController()
-    //This changed
+    @EnvironmentObject var userManager: UserManager
     
     var body: some View {
         
         if userManager.isLoggedIn {
             ContentView()
         } else {
-            WelcomeDisplay()
-                .environmentObject(userManager)
-                .environmentObject(pageController)
+            WelcomeDisplay(userManager: _userManager )
         }
     }
 }

@@ -7,13 +7,13 @@
 
 import SwiftUI
 import RealityKit
-import RealityKitContent
+import BlackJackProject
 
 struct ImmersiveView: View {
     var body: some View {
         RealityView { content in
             // Add the initial RealityKit content
-            if let scene = try? await Entity(named: "Immersive", in: realityKitContentBundle) {
+            if let scene = try? await Entity(named: "Immersive", in: blackJackProjectBundle) {
                 content.add(scene)
             }
         }

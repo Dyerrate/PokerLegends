@@ -8,8 +8,12 @@
 import Foundation
 import SwiftUI
 
+
+
 struct GameDisplayCard: View {
     
+    @Environment(\.openImmersiveSpace) var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     var gameCardInfo: GameCardModel
     
     var body: some View {
@@ -23,19 +27,23 @@ struct GameDisplayCard: View {
                     .fontWeight(.bold)
                     .padding(EdgeInsets(top: 0, leading: 30, bottom: 4, trailing: 0))
                     .frame(maxWidth: .infinity, alignment: .leading)
-        
                 Spacer()
-                
                 Text(gameCardInfo.title)
                     .font(.system(size: 40))
                     .fontWeight(.bold)
                     .frame(maxWidth: .infinity)
 
-                
                 Spacer()
-                
                 Button(action: {
-                    print("Play")
+                    
+                    Task {
+                        let resut = await openImmersiveSpace(id: "GameView")
+                        print("Play to start button")
+                        if case .error = resut {
+                            print("There was an error opening up the current")
+                        }
+                    }
+                    
                 }) {
                     Text(gameCardInfo.buttonText)
                         .padding()

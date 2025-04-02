@@ -7,7 +7,6 @@
 
 import SwiftUI
 import RealityKit
-import RealityKitContent
 
 //TODO: Make sure that all ui is scalable and work to test resizing issues
 struct ContentView: View {

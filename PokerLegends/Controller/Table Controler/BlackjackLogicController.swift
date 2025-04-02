@@ -1,0 +1,402 @@
+//
+//  BlackjackLogicController.swift
+//  PokerLegends
+//
+//  Created by Samuel Dyer on 4/1/25.
+//
+import Foundation
+import Combine // Using Combine to publish state changes
+
+// Defines the possible states of a Blackjack game round.
+enum BlackjackGameState: Codable {
+    case betting        // Players are placing bets
+    case dealing        // Initial hands are being dealt
+    case playerTurn(playerId: String) // A specific player's turn to act
+    case dealerTurn     // Dealer is playing their hand
+    case roundOver      // Round finished, outcomes determined
+    case waitingForPlayers // Waiting for players to join or ready up (optional)
+}
+
+// Defines the possible actions a player can take.
+enum PlayerAction: Codable {
+    case hit
+    case stand
+    // TODO: Add Double Down, Split, Insurance later if desired
+}
+
+// Defines the outcome of a round for a player.
+enum GameOutcome: Codable {
+    case playerBust
+    case dealerBust
+    case playerBlackjack
+    case dealerBlackjack
+    case playerWin
+    case dealerWin
+    case push // Tie
+}
+
+// Manages the core logic and state of a Blackjack game.
+// This class is independent of UI and TabletopKit.
+class BlackjackLogicController: ObservableObject {
+
+    // --- Published Properties (for Combine subscribers like BlackJackGame) ---
+    @Published private(set) var gameState: BlackjackGameState = .waitingForPlayers
+    @Published private(set) var dealerHand = Hand()
+    @Published private(set) var playerHands: [String: Hand] = [:] // Player ID -> Hand
+    @Published private(set) var playerBets: [String: Int] = [:]   // Player ID -> Bet Amount
+    @Published private(set) var playerOutcomes: [String: GameOutcome] = [:] // Player ID -> Outcome
+    @Published private(set) var deck: [PlayingCard] = []
+    @Published private(set) var activePlayerIds: [String] = [] // IDs of players in the current round
+
+    // --- Private Properties ---
+    private var shoe: [PlayingCard] = [] // Cards to be dealt from
+    private let numberOfDecks: Int // How many decks to use in the shoe
+    private var currentPlayerIndex: Int = 0
+
+    // --- Initialization ---
+    init(numberOfDecks: Int = 6) {
+        self.numberOfDecks = numberOfDecks
+        // Initial state setup can happen here or when players join
+    }
+
+    // --- Player Management ---
+
+    /// Adds a player to the game.
+    /// - Parameter playerId: A unique identifier for the player.
+    func addPlayer(playerId: String) {
+            guard playerHands[playerId] == nil else { return } // Don't add if already exists
+            playerHands[playerId] = Hand()
+            playerBets[playerId] = 0 // Initialize bet
+            playerOutcomes[playerId] = nil
+            activePlayerIds.append(playerId) // Add to active list for the round
+            print("Player \(playerId) added.")
+
+            // --- Corrected Line ---
+            // Use 'if case' for pattern matching instead of '=='
+            if case .waitingForPlayers = gameState, !activePlayerIds.isEmpty {
+                 // Maybe transition to betting automatically, or wait for a "start" action
+                 // For now, let's assume we need to manually start the round
+                 print("Player added while waiting. Consider transitioning state.")
+            }
+        }
+
+    /// Removes a player from the game.
+    /// - Parameter playerId: The identifier of the player to remove.
+    func removePlayer(playerId: String) {
+        playerHands.removeValue(forKey: playerId)
+        playerBets.removeValue(forKey: playerId)
+        playerOutcomes.removeValue(forKey: playerId)
+        activePlayerIds.removeAll { $0 == playerId }
+        print("Player \(playerId) removed.")
+        // If the removed player was the current player, advance the turn
+        if case .playerTurn(let currentId) = gameState, currentId == playerId {
+            advanceToNextPlayer()
+        }
+        if activePlayerIds.isEmpty {
+            gameState = .waitingForPlayers
+        }
+    }
+
+    // --- Game Flow ---
+
+    /// Starts a new round of Blackjack.
+    func startNewRound() {
+        guard !activePlayerIds.isEmpty else {
+            print("Cannot start round without players.")
+            gameState = .waitingForPlayers
+            return
+        }
+
+        print("Starting new round...")
+        // 1. Reset hands, bets (keep players, maybe reset bets later), outcomes
+        dealerHand.reset()
+        playerOutcomes.removeAll()
+        for id in activePlayerIds {
+            playerHands[id]?.reset()
+            // TODO: Handle betting properly - reset bets here or require new bets
+            playerBets[id] = 10 // Placeholder bet
+        }
+
+        // 2. Prepare the deck/shoe if needed
+        if shoe.count < (numberOfDecks * 52 / 4) { // Reshuffle if shoe is low (e.g., < 25% left)
+            print("Reshuffling shoe...")
+            shoe = []
+            for _ in 0..<numberOfDecks {
+                shoe.append(contentsOf: PlayingCard.standardDeck())
+            }
+            shoe.shuffle()
+            deck = shoe // Update published deck for potential UI display
+        } else {
+             deck = shoe // Ensure published deck reflects current shoe
+        }
+
+
+        // 3. Set state to Betting (or Dealing if betting is handled elsewhere)
+        // For now, skipping betting phase and going straight to dealing
+         gameState = .dealing
+         dealInitialHands() // Deal immediately after shuffling for this example
+        // gameState = .betting // TODO: Implement betting phase UI and logic
+        print("Round started. State: \(gameState)")
+    }
+
+     /// Places a bet for a player. Should be called during the .betting state.
+     /// - Parameters:
+     ///   - playerId: The ID of the player betting.
+     ///   - amount: The amount to bet.
+     func placeBet(playerId: String, amount: Int) {
+         guard case .betting = gameState else {
+             print("Cannot place bet outside of betting phase.")
+             return
+         }
+         guard playerHands[playerId] != nil else {
+             print("Player \(playerId) not found.")
+             return
+         }
+         guard amount > 0 else {
+             print("Bet amount must be positive.")
+             return
+         }
+         // TODO: Check if player has enough money (requires integrating UserModel)
+         playerBets[playerId] = amount
+         print("Player \(playerId) bet \(amount).")
+
+         // TODO: Check if all active players have placed bets to proceed
+         // let allBetsPlaced = activePlayerIds.allSatisfy { playerBets[$0] ?? 0 > 0 }
+         // if allBetsPlaced {
+         //     gameState = .dealing
+         //     dealInitialHands()
+         // }
+     }
+
+
+    /// Deals the initial two cards to each player and the dealer.
+    private func dealInitialHands() {
+        guard case .dealing = gameState else { return }
+        print("Dealing initial hands...")
+
+        // Deal two cards to each player
+        for _ in 0..<2 {
+            for id in activePlayerIds {
+                if let card = dealCard() {
+                    playerHands[id]?.addCard(card)
+                }
+            }
+            // Deal one card to the dealer
+            if let card = dealCard() {
+                dealerHand.addCard(card)
+            }
+        }
+
+        // Set card visibility (players' cards face up, dealer's second card face down)
+        for id in activePlayerIds {
+             playerHands[id]?.cards.indices.forEach { playerHands[id]?.cards[$0].isFaceUp = true }
+        }
+        if dealerHand.cards.count > 1 {
+            dealerHand.cards[0].isFaceUp = true // First dealer card face up
+            dealerHand.cards[1].isFaceUp = false // Second dealer card face down
+        } else if dealerHand.cards.count == 1 {
+             dealerHand.cards[0].isFaceUp = true
+        }
+
+
+        print("Dealer Hand: \(dealerHand.description)")
+        for id in activePlayerIds {
+            print("Player \(id) Hand: \(playerHands[id]?.description ?? "N/A")")
+        }
+
+        // Check for dealer Blackjack
+        if dealerHand.isBlackjack {
+            print("Dealer has Blackjack!")
+            // Reveal dealer's second card
+             if dealerHand.cards.count > 1 { dealerHand.cards[1].isFaceUp = true }
+            determineOutcome() // End round immediately if dealer has Blackjack
+        } else {
+            // Check for player Blackjacks
+            var anyPlayerBlackjack = false
+            for id in activePlayerIds {
+                if playerHands[id]?.isBlackjack ?? false {
+                    print("Player \(id) has Blackjack!")
+                    playerOutcomes[id] = .playerBlackjack // Mark immediate win (usually pays 3:2)
+                    anyPlayerBlackjack = true
+                    // This player's turn is skipped
+                }
+            }
+
+            // If any player had blackjack but dealer didn't, round might end for them
+            // but proceed for others. If *only* blackjacks occurred, determine outcome.
+            // For simplicity now, just move to the first non-blackjack player's turn.
+
+            currentPlayerIndex = activePlayerIds.firstIndex(where: { !(playerHands[$0]?.isBlackjack ?? false) }) ?? -1
+
+            if currentPlayerIndex != -1 {
+                 let firstPlayerId = activePlayerIds[currentPlayerIndex]
+                 gameState = .playerTurn(playerId: firstPlayerId)
+                 print("Moving to Player \(firstPlayerId)'s turn.")
+            } else {
+                 // All players had blackjack or no players left
+                 print("No players left to play or only Blackjacks. Determining outcome.")
+                 // Reveal dealer's second card
+                 if dealerHand.cards.count > 1 { dealerHand.cards[1].isFaceUp = true }
+                 determineOutcome() // Determine outcome (pushes for player blackjacks if dealer doesn't have one)
+            }
+        }
+    }
+
+    /// Handles a player's action (Hit or Stand).
+    /// - Parameters:
+    ///   - playerId: The ID of the player taking the action.
+    ///   - action: The action to perform (.hit or .stand).
+    func playerAction(playerId: String, action: PlayerAction) {
+        guard case .playerTurn(let currentId) = gameState, currentId == playerId else {
+            print("Not Player \(playerId)'s turn.")
+            return
+        }
+        guard var hand = playerHands[playerId] else {
+            print("Player \(playerId) hand not found.")
+            return
+        }
+
+        switch action {
+        case .hit:
+            print("Player \(playerId) hits.")
+            if let card = dealCard() {
+                var dealtCard = card
+                dealtCard.isFaceUp = true // Make sure dealt card is face up
+                playerHands[playerId]?.addCard(dealtCard)
+                hand = playerHands[playerId]! // Re-fetch hand after modification
+                print("Player \(playerId) Hand: \(hand.description)")
+
+                if hand.isBusted {
+                    print("Player \(playerId) busted!")
+                    playerOutcomes[playerId] = .playerBust
+                    advanceToNextPlayer()
+                } else {
+                    // Player can hit again, state remains .playerTurn(playerId)
+                    print("Player \(playerId) can act again.")
+                }
+            } else {
+                 print("Error: Deck is empty during player hit.")
+                 // Handle error state appropriately
+            }
+
+        case .stand:
+            print("Player \(playerId) stands with score \(hand.score).")
+            advanceToNextPlayer()
+        }
+    }
+
+    /// Advances the game state to the next player's turn or to the dealer's turn.
+    private func advanceToNextPlayer() {
+        currentPlayerIndex += 1
+        // Find the next player who hasn't busted or got Blackjack
+         while currentPlayerIndex < activePlayerIds.count {
+             let nextPlayerId = activePlayerIds[currentPlayerIndex]
+             if playerOutcomes[nextPlayerId] == nil { // If no outcome decided yet (not bust/blackjack)
+                 gameState = .playerTurn(playerId: nextPlayerId)
+                 print("Moving to Player \(nextPlayerId)'s turn.")
+                 return
+             }
+             currentPlayerIndex += 1 // Skip players who are done
+         }
+
+
+        // If no more players left to act, move to dealer's turn
+        print("All players finished. Moving to Dealer's turn.")
+        gameState = .dealerTurn
+        dealerPlays()
+    }
+
+    /// Executes the dealer's turn based on standard Blackjack rules.
+    private func dealerPlays() {
+        guard case .dealerTurn = gameState else { return }
+
+        // Reveal dealer's face-down card
+        if dealerHand.cards.count > 1 && !dealerHand.cards[1].isFaceUp {
+             dealerHand.cards[1].isFaceUp = true
+             print("Dealer reveals second card. Hand: \(dealerHand.description)")
+             // Need to re-publish state if changes aren't automatic
+             // For @Published, this should trigger automatically if Hand is modified correctly
+        }
+
+
+        // Dealer hits until score is 17 or more
+        while dealerHand.score < 17 {
+            print("Dealer hits.")
+            if let card = dealCard() {
+                 var dealtCard = card
+                 dealtCard.isFaceUp = true
+                 dealerHand.addCard(dealtCard)
+                 print("Dealer Hand: \(dealerHand.description)")
+            } else {
+                 print("Error: Deck is empty during dealer turn.")
+                 break // Exit loop if deck is empty
+            }
+        }
+
+        if dealerHand.isBusted {
+            print("Dealer busted!")
+        } else {
+            print("Dealer stands with score \(dealerHand.score).")
+        }
+
+        // After dealer plays, determine the outcome for all players
+        determineOutcome()
+    }
+
+    /// Compares player hands to the dealer's hand and determines the outcome.
+    private func determineOutcome() {
+        print("Determining round outcome...")
+        let dealerScore = dealerHand.score
+        let dealerBusted = dealerHand.isBusted
+        let dealerHasBlackjack = dealerHand.isBlackjack // Check initial deal blackjack
+
+        for id in activePlayerIds {
+            // Skip if outcome already decided (Bust, Player Blackjack)
+            if playerOutcomes[id] != nil { continue }
+
+            guard let playerHand = playerHands[id] else { continue }
+            let playerScore = playerHand.score
+
+            if dealerBusted {
+                print("Player \(id) wins (Dealer Busted). Score: \(playerScore)")
+                playerOutcomes[id] = .dealerBust // Player wins because dealer busted
+            } else if dealerHasBlackjack {
+                 // If player also had blackjack, it's a push, otherwise player loses.
+                 // Player Blackjack outcome was set earlier if applicable.
+                 if playerHand.isBlackjack {
+                      print("Player \(id) pushes (Both Blackjack).")
+                      playerOutcomes[id] = .push
+                 } else {
+                      print("Player \(id) loses (Dealer Blackjack). Score: \(playerScore)")
+                      playerOutcomes[id] = .dealerBlackjack // Player loses to dealer blackjack
+                 }
+            } else if playerScore > dealerScore {
+                print("Player \(id) wins. Score: \(playerScore) vs Dealer: \(dealerScore)")
+                playerOutcomes[id] = .playerWin
+            } else if playerScore == dealerScore {
+                print("Player \(id) pushes. Score: \(playerScore) vs Dealer: \(dealerScore)")
+                playerOutcomes[id] = .push
+            } else { // playerScore < dealerScore
+                print("Player \(id) loses. Score: \(playerScore) vs Dealer: \(dealerScore)")
+                playerOutcomes[id] = .dealerWin
+            }
+        }
+
+        gameState = .roundOver
+        print("Round over. Final Outcomes: \(playerOutcomes)")
+        // TODO: Handle payout logic based on outcomes and bets
+    }
+
+
+    // --- Utility Methods ---
+
+    /// Deals a single card from the shoe.
+    /// - Returns: The card dealt, or nil if the shoe is empty.
+    private func dealCard() -> PlayingCard? {
+        guard !shoe.isEmpty else { return nil }
+        let card = shoe.removeFirst()
+        deck = shoe // Update published deck
+        return card
+    }
+}
+

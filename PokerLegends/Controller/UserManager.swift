@@ -14,12 +14,12 @@ class UserManager: NSObject, ObservableObject {
     
     //TODO: this is just here to make sure we sign in and will need to make it turn off the loading icon when the request is finished
     @Published var isLoggedIn = false
-
+    
     func signInWithApple() {
         self.isLoggedIn = true
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
-
+        
         let authorizationController = ASAuthorizationController(authorizationRequests: [request])
         authorizationController.delegate = self
         authorizationController.presentationContextProvider = self
@@ -29,14 +29,13 @@ class UserManager: NSObject, ObservableObject {
 
 extension UserManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+        if authorization.credential is ASAuthorizationAppleIDCredential {
             // Process user data, e.g., save in Keychain, and update UI
             self.isLoggedIn = true
         }
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        // Handle error
         print("Authorization failed: \(error.localizedDescription)")
     }
 
