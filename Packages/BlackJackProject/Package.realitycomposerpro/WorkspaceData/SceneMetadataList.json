@@ -1,4 +1,34 @@
 {
+  "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08" : {
+    "objectMetadataList" : [
+      [
+        "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
+        "Root",
+        "closeGameButton"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
+        "Root",
+        "startBJButton"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
   "88D31EFF-44A1-4A98-903E-11DB282EB71F" : {
     "objectMetadataList" : [
       [
@@ -15,6 +45,27 @@
     "objectMetadataList" : [
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
+        "Root",
+        "cardSleeve"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "A3220354-F67B-493F-AC76-5F9C269B526D",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "C2DACEB1-10A1-4AAF-8F99-1789048A61F4" : {
+    "objectMetadataList" : [
+      [
+        "C2DACEB1-10A1-4AAF-8F99-1789048A61F4",
         "Root"
       ],
       {

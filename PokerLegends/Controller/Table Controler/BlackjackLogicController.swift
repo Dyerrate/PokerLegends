@@ -8,13 +8,16 @@ import Foundation
 import Combine // Using Combine to publish state changes
 
 // Defines the possible states of a Blackjack game round.
-enum BlackjackGameState: Codable {
+enum BlackjackGameState: Codable, Equatable {
     case betting        // Players are placing bets
     case dealing        // Initial hands are being dealt
     case playerTurn(playerId: String) // A specific player's turn to act
     case dealerTurn     // Dealer is playing their hand
     case roundOver      // Round finished, outcomes determined
-    case waitingForPlayers // Waiting for players to join or ready up (optional)
+    case waitingForPlayers // Waiting for players to join or ready up
+
+    // Swift automatically synthesizes Equatable conformance because String is Equatable.
+    // No need to write static func ==(...) manually here.
 }
 
 // Defines the possible actions a player can take.
@@ -398,5 +401,24 @@ class BlackjackLogicController: ObservableObject {
         deck = shoe // Update published deck
         return card
     }
+    
+    // --- NEW: Public function to reset state internally ---
+    public func resetToWaitingState() {
+        print("BlackjackLogicController: Resetting state to waitingForPlayers.")
+        // Reset hands, outcomes etc. if needed when going back to waiting
+        dealerHand.reset()
+        playerOutcomes.removeAll()
+        activePlayerIds.forEach { id in
+            playerHands[id]?.reset()
+            playerBets[id] = 0 // Reset bets too
+        }
+        // Reset shoe? Or keep it for next round? Let's keep it for now.
+        // shoe.removeAll()
+        // deck = shoe
+
+        // Set the state
+        self.gameState = .waitingForPlayers
+    }
+    
 }
 
