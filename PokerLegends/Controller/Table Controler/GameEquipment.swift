@@ -38,14 +38,14 @@ struct PlayerSeat: TableSeat {
     let id: ID
     var initialState: TableSeatState
 
-    /* Using 7 seats typical for Blackjack, arranged in an arc */
+    /* Using 5 seats typical for Blackjack, arranged in an arc */
     @MainActor static let seatPoses: [TableVisualState.Pose2D] = {
         let radius: Double = Double(GameMetrics.tableEdge) * 0.8 // Adjust radius as needed
         let totalAngle: Double = .pi * 0.8 // Arc angle (e.g., 144 degrees)
-        let angleStep = totalAngle / Double(7 - 1) // Angle between seats
+        let angleStep = totalAngle / Double(5 - 1) // Angle between seats
         let startAngle = -totalAngle / 2.0 // Start from the left
 
-        return (0..<7).map { index in
+        return (0..<5).map { index in
             let angle = startAngle + Double(index) * angleStep
             let x = radius * sin(angle)
             let z = radius * cos(angle) // Position along the Z-axis (closer/further)

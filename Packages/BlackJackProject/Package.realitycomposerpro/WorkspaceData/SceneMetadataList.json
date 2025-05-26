@@ -12,8 +12,7 @@
       },
       [
         "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
-        "Root",
-        "startBJButton"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -21,6 +20,31 @@
       },
       [
         "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
+        "Root",
+        "startBJButton"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "35505566-C46D-41E5-A928-A7A701A628E7" : {
+    "objectMetadataList" : [
+      [
+        "35505566-C46D-41E5-A928-A7A701A628E7",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "85B0E3F5-3411-4ECD-9B9F-C28EE392B141" : {
+    "objectMetadataList" : [
+      [
+        "85B0E3F5-3411-4ECD-9B9F-C28EE392B141",
         "Root"
       ],
       {
@@ -45,8 +69,7 @@
     "objectMetadataList" : [
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
-        "Root",
-        "cardSleeve"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -54,7 +77,8 @@
       },
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
-        "Root"
+        "Root",
+        "cardSleeve"
       ],
       {
         "isExpanded" : true,
@@ -66,6 +90,76 @@
     "objectMetadataList" : [
       [
         "C2DACEB1-10A1-4AAF-8F99-1789048A61F4",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
+  "D869C0EB-997D-4441-A807-1A1FC77A99D6" : {
+    "objectMetadataList" : [
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "betZoneTrigger"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "_5_heart",
+        "Geom"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "Group"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "Deal",
+        "Track"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "PlayerHandAreaMarker_6"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "PlayerHandAreaMarker_1",
+        "cardTemplate"
+      ],
+      {
+        "disallowsFraming" : false,
+        "isExpanded" : false,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root"
       ],
       {

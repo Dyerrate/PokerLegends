@@ -2,10 +2,13 @@
   "pathsToIds" : {
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/InitialGame.usda" : "A3220354-F67B-493F-AC76-5F9C269B526D",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/Scene.usda" : "88D31EFF-44A1-4A98-903E-11DB282EB71F",
+    "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/TemplateScene.usda" : "35505566-C46D-41E5-A928-A7A701A628E7",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/Untitled Scene.usda" : "14F766CE-3BF0-4AB2-9BC2-14CDA2B9E995",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/Untitled%20Scene%201.usda" : "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/Untitled%20Scene%202.usda" : "C2DACEB1-10A1-4AAF-8F99-1789048A61F4",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/Untitled%20Scene.usda" : "28A5355E-93A8-4AA4-BCF4-8F7087610DBA",
+    "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/bjGameScene.usda" : "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+    "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/bjLobby.usda" : "85B0E3F5-3411-4ECD-9B9F-C28EE392B141",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/board_cavity_assembly.usda" : "B042D3A7-7818-40DD-BB4E-CBE391161342"
   }
 }

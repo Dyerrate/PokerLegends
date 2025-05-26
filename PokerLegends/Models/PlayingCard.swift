@@ -49,10 +49,10 @@ enum Rank: Int, CaseIterable, Codable, Comparable {
 
 // Represents a standard playing card with a suit and rank.
 struct PlayingCard: Identifiable, Codable, Hashable {
-    let id = UUID() // Unique identifier for each card instance
+    var id = UUID() // Unique identifier for each card instance
     let rank: Rank
     let suit: Suit
-    var isFaceUp: Bool = false // Determines if the card's face is visible
+    var isFaceUp: Bool = true // Determines if the card's face is visible
 
     // Provides a simple description of the card (e.g., "A♠️").
     var description: String {

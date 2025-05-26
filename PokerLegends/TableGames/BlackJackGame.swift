@@ -13,407 +13,533 @@
 //  BlackJackGame.swift
 
 //
+//
+//  BlackJackGame.swift
+//  PokerLegends
+//
+//  Created by Samuel Dyer on 10/6/24.
+//
+//
+//  BlackJackGame.swift
+//  PokerLegends
+//
+//  Created by Samuel Dyer on 10/6/24.
+//
 import TabletopKit
 import RealityKit
 import SwiftUI
-import Combine
-import Foundation // For UUID
+import Combine // <-- Ensure Combine is imported
+import Foundation
 
 @Observable
 @MainActor
 class BlackJackGame: @preconcurrency GameProtocol {
 
-    // --- Properties ---
+    // Properties
     let tabletopGame: TabletopGame
     let renderer: GameRenderer
     let observer: GameObserver
     let setup: GameSetup
-
+    
     private(set) var blackjackLogic: BlackjackLogicController
-    private var cancellables = Set<AnyCancellable>()
-
-    // Card mapping state
+    private var cancellables = Set<AnyCancellable>() // Keep for other bindings
     private var logicCardToEquipmentId: [UUID: EquipmentIdentifier] = [:]
     private var equipmentIdToLogicCard: [EquipmentIdentifier: UUID] = [:]
     private var nextCardEquipmentIdCounter: Int = 2000
-
-    // Game readiness state
     private(set) var isReadyToStartFromLobby: Bool = false
+
+    // Task handle for seat waiting cancellation
+    var seatWaitTask: Task<Void, Never>? = nil
+
 
     // --- Initialization ---
     init() async {
         print("BlackJackGame: Initializing...")
-        // Initialize components
         blackjackLogic = BlackjackLogicController(numberOfDecks: 6)
-        renderer = GameRenderer(typeOfGame: "blackJack") // Renderer first
-        setup = GameSetup(root: renderer.root, currentGame: "blackJack") // Then setup
-        tabletopGame = TabletopGame(tableSetup: setup.setup) // Then TabletopGame
-        observer = GameObserver(tabletop: tabletopGame, renderer: renderer, gameToRender: "blackJack") // Then Observer
-
-        // Add delegates/observers
+        renderer = GameRenderer(typeOfGame: "blackJack")
+        setup = GameSetup(root: renderer.root, currentGame: "blackJack")
+        tabletopGame = TabletopGame(tableSetup: setup.setup)
+        // IMPORTANT: Observer must be initialized AFTER tabletopGame
+        observer = GameObserver(tabletop: tabletopGame, renderer: renderer, gameToRender: "blackJack")
         tabletopGame.addRenderDelegate(renderer)
-        tabletopGame.addObserver(observer)
-
-        // Assign cross-references
+        tabletopGame.addObserver(observer) // Add observer AFTER it's initialized
         renderer.blackJackGame = self
-        renderer.gameSetup = setup // Give renderer access to setup info if needed
-
-        // --- Load Scenes and Setup References ---
-        // This needs to happen before setting up players or bindings
-        await renderer.setupScenesAndReferences() // Await scene loading
-
-        // Setup Combine bindings AFTER renderer setup
-        setupBindings()
-
-        // Setup initial player state and show lobby
-        await setupInitialPlayerAndWait()
-        print("BlackJackGame: Initialization complete. Lobby should be visible.")
+        renderer.gameSetup = setup
+        await renderer.setupScenesAndReferences()
+        setupBindings() // Setup other bindings
+        // Start the process to claim seat and wait
+        // Use a Task to avoid blocking init if wait takes time, although init is already async
+        seatWaitTask = Task {
+             await setupInitialPlayerAndWait()
+        }
+        print("BlackJackGame: Initialization sequence complete. Waiting for seat claim task.")
     }
 
     // --- Setup player and wait in lobby ---
     private func setupInitialPlayerAndWait() async {
          print("BlackJackGame: Setting up initial player...")
-         
-         // First check if player already has a seat
-         if let existingSeat = observer.seat(for: tabletopGame.localPlayer) {
-             print("BlackJackGame: Player already has seat \(existingSeat.rawValue)")
-             isReadyToStartFromLobby = true
-             renderer.showLobbyScene()
-             return
-         }
-         
-         // Try to claim a seat
-         print("BlackJackGame: Attempting to claim any seat...")
+
+         // Ensure observer is ready before proceeding (optional safety)
+         // await Task.yield()
+
+         // Use a Combine Future or similar pattern to wait for the subject
+         let seatClaimedPublisher = observer.localPlayerSeatedSubject
+             .first() // We only need the first confirmation
+             .timeout(5.0, scheduler: DispatchQueue.main) // Wait max 5 seconds
+             .map { _ in true } // Map success to true
+             .replaceError(with: false) // Map timeout/error to false
+             .eraseToAnyPublisher()
+
+         // Call claimAnySeat - the observer callback will trigger the subject if successful
          await tabletopGame.claimAnySeat()
-         
-         // Wait a bit longer for the seat claim to process
-         try? await Task.sleep(for: .milliseconds(500))
-         
-         // Check if seat was claimed
-         if let claimedSeat = observer.seat(for: tabletopGame.localPlayer) {
+         print("BlackJackGame: Called claimAnySeat(). Waiting for observer event via Combine...")
+
+         // Await the result from the publisher
+         var seatClaimed = false
+         let cancellable = seatClaimedPublisher.sink { claimed in
+             seatClaimed = claimed
+         }
+         // We need to keep the subscription alive while waiting.
+         // Since this function is async, we can loop briefly or use another mechanism.
+         // Let's use a short async wait loop here, checking the flag set by the sink.
+         let maxWaitTime = 5.5 // Slightly longer than timeout
+         var waitTime: TimeInterval = 0
+         let checkInterval = 0.05
+         while waitTime < maxWaitTime && !seatClaimed {
+              // Check if the sink has completed and set seatClaimed to true
+              // The actual check happens implicitly via the !seatClaimed condition
+              try? await Task.sleep(for: .seconds(checkInterval))
+              waitTime += checkInterval
+              // Need to yield to allow the sink closure to execute if event arrives
+              await Task.yield()
+         }
+         cancellable.cancel() // Clean up subscription
+         // Now check the final result
+         if seatClaimed {
              let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
              blackjackLogic.addPlayer(playerId: localPlayerIdString)
-             print("BlackJackGame: Successfully claimed seat \(claimedSeat.rawValue). Local player added with ID \(localPlayerIdString)")
+             print("BlackJackGame: Seat claimed confirmed by observer event. Local player added with ID \(localPlayerIdString)")
              isReadyToStartFromLobby = true
              renderer.showLobbyScene()
              print("BlackJackGame: Ready to start from lobby. Showing lobby scene.")
          } else {
-             print("BlackJackGame: ERROR - Failed to claim any seat. Available seats: \(setup.seats.count)")
-             print("BlackJackGame: Current seat mappings: \(observer.playerSeats)")
+             print("BlackJackGame: ERROR - Failed to claim seat (timed out waiting for observer event).")
              isReadyToStartFromLobby = false
-             renderer.showLobbyScene() // Show lobby anyway, but start might not work
+             renderer.showLobbyScene()
          }
+         seatWaitTask = nil // Clear task handle
     }
 
     // --- Start game from lobby ---
+    // Remains the same
     func startGameFromLobby() {
         print("BlackJackGame: startGameFromLobby called.")
         guard isReadyToStartFromLobby else {
-            print("BlackJackGame: Not ready to start from lobby yet.")
+            print("BlackJackGame: Not ready to start from lobby yet (isReadyToStartFromLobby is false - likely seat not claimed).")
             return
         }
-        // Only start if waiting or round is over
         guard blackjackLogic.gameState == .waitingForPlayers || blackjackLogic.gameState == .roundOver else {
              print("BlackJackGame: Cannot start from lobby. Current state: \(blackjackLogic.gameState)")
              return
         }
-
         print("BlackJackGame: Switching to main game scene and starting round...")
         isReadyToStartFromLobby = false
-
-        // --- Show Main Game Scene ---
         renderer.showMainGameScene()
-
-        // Start the actual game logic round
         startRound()
     }
 
 
-    // --- Game Actions ---
-    func startRound() {
-        guard blackjackLogic.gameState == .waitingForPlayers || blackjackLogic.gameState == .roundOver else {
-            print("BlackJackGame: Cannot start new round. Current state: \(blackjackLogic.gameState)")
-            return
-        }
+    // --- Game Actions (startRound, playerDidHit, playerDidStand) ---
+    // Remain the same
+    func startRound() { /* ... */
+        guard blackjackLogic.gameState == .waitingForPlayers || blackjackLogic.gameState == .roundOver else { return }
         print("BlackJackGame: Starting new round logic...")
-        // Ensure main game scene is visible when a round starts/restarts
         renderer.showMainGameScene()
         renderer.removeAllCardEntities()
         logicCardToEquipmentId.removeAll()
         equipmentIdToLogicCard.removeAll()
         blackjackLogic.startNewRound()
-    }
+        setBettingEntityStart()
+        
+        Task { @MainActor in
+                    // Give a tiny delay for the @Published properties to update if needed
+                    try? await Task.sleep(for: .milliseconds(10))
+                    print("BlackJackGame: Calling setInitialCardVisuals after startNewRound.")
+                    await setInitalCardVisuals(playerHands: blackjackLogic.playerHands, dealerHand: blackjackLogic.dealerHand)
+                }
+     }
+    
+    func playerDidPlaceBet(amount: Int) {
+            guard blackjackLogic.gameState == .betting else {
+                print("BlackJackGame: Cannot place bet. Not in betting state. Current state: \(blackjackLogic.gameState)")
+                return
+            }
+            let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
+            print("BlackJackGame: Player \(localPlayerIdString) attempts to bet \(amount)")
+            blackjackLogic.placeBet(playerId: localPlayerIdString, amount: amount)
 
-    func playerDidHit() {
-        guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState else { return }
-        let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
-        if currentPlayerId == localPlayerIdString {
-            print("BlackJackGame: Player Hits")
-            blackjackLogic.playerAction(playerId: currentPlayerId, action: .hit)
-        } else { print("BlackJackGame: Ignoring Hit action, not local player's turn.") }
-    }
+            // Visual update for the bet placed would happen here via GameRenderer
+            if let seatIndex = getSeatIndex(for: localPlayerIdString) {
+                // Task { await renderer.updateBetVisualForPlayer(playerId: localPlayerIdString, amount: amount, seatIndex: seatIndex) }
+                 print("BlackJackGame: Bet placed by \(localPlayerIdString). UI should now allow 'Ready'.")
+            }
+            // DO NOT automatically call ready here. Player must explicitly tap the ready button.
+        }
+    
+    func playerDidHit() { /* ... */
+        guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
+              currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+        print("BlackJackGame: Player Hits")
+        blackjackLogic.playerAction(playerId: currentPlayerId, action: .hit)
+     }
+    
+    func playerDidStand() { /* ... */
+         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
+               currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+         print("BlackJackGame: Player Stands")
+         blackjackLogic.playerAction(playerId: currentPlayerId, action: .stand)
+     }
 
-    func playerDidStand() {
-         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState else { return }
-         let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
-         if currentPlayerId == localPlayerIdString {
-             print("BlackJackGame: Player Stands")
-             blackjackLogic.playerAction(playerId: currentPlayerId, action: .stand)
-         } else { print("BlackJackGame: Ignoring Stand action, not local player's turn.") }
-    }
-
-    // --- State Observation and Rendering ---
+     // Remain the same
     private func setupBindings() {
-        print("BlackJackGame: Setting up bindings...")
-        blackjackLogic.$gameState
-            .receive(on: RunLoop.main)
-            .sink { [weak self] newState in self?.handleGameStateChange(newState) }
-            .store(in: &cancellables)
+         print("BlackJackGame: Setting up bindings...")
+         let debounceInterval: RunLoop.SchedulerTimeType.Stride = .milliseconds(100) // Keep debounce
 
-        // Bindings for hands and outcomes remain the same, triggering updateHandsVisuals/updateOutcomeVisuals
-        blackjackLogic.$playerHands
+         // --- GameState and Outcomes subscriptions remain the same ---
+         blackjackLogic.$gameState
              .receive(on: RunLoop.main)
-             .sink { [weak self] hands in Task { await self?.updateHandsVisuals(playerHands: hands, dealerHand: self?.blackjackLogic.dealerHand ?? Hand()) } }
-             .store(in: &cancellables)
-
-        blackjackLogic.$dealerHand
-             .receive(on: RunLoop.main)
-             .sink { [weak self] hand in Task { await self?.updateHandsVisuals(playerHands: self?.blackjackLogic.playerHands ?? [:], dealerHand: hand) } }
+             .sink { [weak self] newState in self?.handleGameStateChange(newState) }
              .store(in: &cancellables)
 
          blackjackLogic.$playerOutcomes
-            .receive(on: RunLoop.main)
-            .sink { [weak self] outcomes in self?.updateOutcomeVisuals(outcomes) }
-            .store(in: &cancellables)
-    }
+             .receive(on: RunLoop.main)
+             .sink { [weak self] outcomes in self?.updateOutcomeVisuals(outcomes) }
+             .store(in: &cancellables)
+        
+        blackjackLogic.$playerBets
+                    .debounce(for: debounceInterval, scheduler: RunLoop.main)
+                    .receive(on: RunLoop.main)
+                    .sink { [weak self] bets in
+                        // guard let self = self else { return } // 'self' is not used here currently
+                        print("[Combine Bindings] Player bets updated: \(bets).")
+                        // Task { await self.updateAllBetVisuals(bets: bets) } // If you have this function
+                    }
+                    .store(in: &cancellables)
 
-    // --- Handle Game State Changes (Scene Switching Logic) ---
-    private func handleGameStateChange(_ newState: BlackjackGameState) {
-        print("BlackJackGame: Handling state change to \(newState)")
-        // Default: disable action buttons
-        renderer.setActionButtonsEnabled(false)
-        // Optional: Unhighlight all player areas
-        // for i in 0..<(setup.seats.count) { renderer.highlightPlayerArea(seatIndex: i, highlight: false) }
+                // New binding to observe changes in playersReadyAfterBetting if needed for UI updates
+                blackjackLogic.$playersReadyAfterBetting
+                    .receive(on: RunLoop.main)
+                    .sink { [weak self] readyPlayers in
+                        print("[Combine Bindings] Ready players updated: \(readyPlayers).")
+                        // You could update UI here to show which players are ready,
+                        // e.g., by iterating through readyPlayers and updating their ready indicators.
+                        // for playerId in readyPlayers {
+                        //    if let seatIndex = self?.getSeatIndex(for: playerId) {
+                        //        self?.renderer.updatePlayerReadyIndicator(seatIndex: seatIndex, isReady: true)
+                        //    }
+                        // }
+                        // Also handle players who might un-ready (if you add that feature)
+                    }
+                    .store(in: &cancellables)
 
-        switch newState {
-            case .waitingForPlayers:
-                 print("BlackJackGame: State -> Waiting")
-                 // If waiting, likely means we should be in the lobby
-                 renderer.showLobbyScene()
-                 isReadyToStartFromLobby = true // Ready for next start
+         // --- Combine Player & Dealer Hand Publishers ---
+         Publishers.CombineLatest(blackjackLogic.$playerHands, blackjackLogic.$dealerHand)
+             .debounce(for: debounceInterval, scheduler: RunLoop.main) // Keep debounce
+             .receive(on: RunLoop.main)
+             .sink { [weak self] (latestPlayerHands, latestDealerHand) in
+                 guard let self = self else { return }
 
-            case .betting:
-                 print("BlackJackGame: State -> Betting")
-                 // Ensure game scene is visible, handle betting UI
-                 renderer.showMainGameScene()
-                 // TODO: Implement betting visuals/interactions
+                 // --- REVISED LOGIC ---
+                 let currentState = self.blackjackLogic.gameState
+                 print("[Combine Bindings] Hand update received. Current State: \(currentState)")
 
-            case .dealing:
-                 print("BlackJackGame: State -> Dealing")
-                 // Ensure game scene is visible
-                 renderer.showMainGameScene()
+                 Task { @MainActor in
+                     // 1. Always try to add visuals for any *new* cards whenever hands change.
+                     //    `addCardsMidGame` checks internally if a card is already visualized.
+                     //    This ensures the bust card visual is added even if state changes quickly.
+                     print("[Combine Bindings] Calling addCardsMidGame to sync visuals...")
+                     await self.addCardsMidGame(playerHands: latestPlayerHands, dealerHand: latestDealerHand)
 
-            case .playerTurn(let playerId):
-                print("BlackJackGame: State -> Player Turn: \(playerId)")
-                // Ensure game scene is visible
-                renderer.showMainGameScene()
-                // Highlight active player and enable buttons if it's the local player
-                if let seatIndex = getSeatIndex(for: playerId) { renderer.highlightPlayerArea(seatIndex: seatIndex, highlight: true) }
-                if playerId == tabletopGame.localPlayer.id.uuid.uuidString { renderer.setActionButtonsEnabled(true) }
+                     // 2. Handle additional state-specific visual updates *after* syncing new cards.
+                     switch currentState {
+                     case .dealing:
+                         // Initial visuals are now handled in startRound.
+                         // This case might only be needed if dealing involves animations delayed over time.
+                         print("[Combine Bindings] State is .dealing. Visuals likely handled initially.")
+                         // If dealing has complex steps, add logic here.
+                         break // Explicitly do nothing extra for now
 
-            case .dealerTurn:
-                print("BlackJackGame: State -> Dealer Turn")
-                // Ensure game scene is visible
-                renderer.showMainGameScene()
+                     case .playerTurn:
+                         // `addCardsMidGame` already handled adding new cards.
+                         print("[Combine Bindings] State is active turn. New cards synced.")
+                         break // Explicitly do nothing extra
+                         
+                     case .dealerTurn:
+                         print("[Combine Bindings] State dealerTurn. New cards synced.")
 
-            case .roundOver:
-                 print("BlackJackGame: State -> Round Over")
-                 // Ensure game scene is visible to show final hands/outcomes
-                 renderer.showMainGameScene()
-                 // After a delay, could switch back to lobby or show a "Play Again" button
-                 // For now, stays in game scene. User can hit Reset or maybe Start in lobby again.
-                 isReadyToStartFromLobby = true // Allow starting new round from lobby
-                 // Example: Schedule return to lobby after 5 seconds
-                 // Task {
-                 //    try? await Task.sleep(for: .seconds(5))
-                 //    // Check if state is still roundOver before switching
-                 //    if self.blackjackLogic.gameState == .roundOver {
-                 //        self.renderer.showLobbyScene()
-                 //    }
-                 // }
-        }
-    }
 
-    // --- Update Visuals (Card dealing logic remains similar) ---
-    private func updateHandsVisuals(playerHands: [String: Hand], dealerHand: Hand) async {
-        // This function remains largely the same as before, dealing cards
-        // using the transforms derived from markers in the main game scene.
-        // Ensure it's only called/effective when the main game scene is active.
+                     case .roundOver:
+                         // Ensure the dealer's hole card is visually flipped if needed.
+                         print("[Combine Bindings] State is .roundOver. Ensuring dealer hole card flipped.")
+                         
+
+                     case .waitingForPlayers, .betting:
+                         // No specific hand visual updates typically needed here.
+                         print("[Combine Bindings] Hand update received in state \(currentState). No extra visual action needed.")
+                     }
+                 }
+                 // --- End of Revised Logic ---
+             }
+             .store(in: &cancellables)
+     }
+    
+    private func addCardsMidGame(playerHands: [String: Hand], dealerHand: Hand) async {
         guard renderer.mainGameSceneEntity?.isEnabled ?? false else {
-            // print("BlackJackGame: Skipping hand update, main game scene not visible.")
-            return // Don't update visuals if game scene isn't shown
+            print("[addCardsMidGame] Main game scene not active. Skipping.")
+            return
         }
-
-        print("BlackJackGame: Updating hand visuals (Main Game Scene active)...")
-        var dealDelay: TimeInterval = 0.0
-        let delayIncrement: TimeInterval = 0.15
-
-        // --- Update Player Hands ---
+         print("[addCardsMidGame] Checking for new cards to add...")
+        // --- Player Hands ---
         for (playerId, hand) in playerHands {
             guard let seatIndex = getSeatIndex(for: playerId) else { continue }
+            // Iterate through cards in the hand
             for (cardIndex, card) in hand.cards.enumerated() {
-                let equipmentId: EquipmentIdentifier
-                if let existingId = logicCardToEquipmentId[card.id] {
-                    equipmentId = existingId
-                } else {
-                    equipmentId = generateNextCardEquipmentId()
+                // Check if this card ALREADY has a visual representation
+                if logicCardToEquipmentId[card.id] == nil {
+                    // --- This is a NEW card ---
+                    print("[addCardsMidGame] Found NEW card for Player \(playerId) (Seat \(seatIndex)): \(card.description) at index \(cardIndex)")
+                    // Generate ID and create mapping
+                    let equipmentId = generateNextCardEquipmentId()
                     logicCardToEquipmentId[card.id] = equipmentId
                     equipmentIdToLogicCard[equipmentId] = card.id
-                    guard let cardEntity = await renderer.findOrCreateCardEntity(for: equipmentId, cardData: card) else { continue }
-                    let startTransform = renderer.getShoeTransform()
-                    let endTransform = renderer.getTransformForPlayerCard(cardIndex: cardIndex, totalCardsInHand: hand.cards.count, seatIndex: seatIndex)
-                    renderer.animateDealCard(cardEntity: cardEntity, from: startTransform, to: endTransform, faceUp: card.isFaceUp, delay: dealDelay)
-                    dealDelay += delayIncrement
+                    print("  Mapping Card \(card.description) (ID: \(card.id)) to EquipmentID \(equipmentId.rawValue)")
+
+                    // Find/Create Entity
+                    guard let cardEntity = await renderer.findOrCreateCardEntity(for: equipmentId, cardData: card) else {
+                        print("  ERROR: Failed to find/create entity for NEW Player Card. Skipping.")
+                        continue
+                    }
+                    // Generate Template Clone & Add to Scene
+                    // The card data should have isFaceUp=true when dealt mid-game
+                    let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
+                    renderer.addPlayerCard(currentCard: cloneCardFromTemplate, playerSeat: seatIndex, cardIndex: cardIndex)
+                    print("  Added visual for NEW Player Card \(cardIndex) (\(card.description))")
                 }
             }
-            // TODO: Remove visual cards no longer in this player's logical hand
         }
 
-        // --- Update Dealer Hand ---
+        // --- Dealer Hand ---
+        // Dealer usually only gets cards during their turn after players finish
         for (cardIndex, card) in dealerHand.cards.enumerated() {
-            let equipmentId: EquipmentIdentifier
-             if let existingId = logicCardToEquipmentId[card.id] {
-                 equipmentId = existingId
-                 // Flip check
-                 if cardIndex == 1 && card.isFaceUp {
-                      if let cardEntity = renderer.cardEntities[equipmentId], cardEntity.orientation.isFaceDown {
-                           renderer.animateFlipCard(cardEntity: cardEntity, faceUp: true)
-                      }
+            // Check if this card ALREADY has a visual representation
+            if logicCardToEquipmentId[card.id] == nil {
+                 // --- This is a NEW card (likely revealed hole card or hit card) ---
+                 print("[addCardsMidGame] Found NEW card for Dealer: \(card.description) at index \(cardIndex)")
+
+                 // Generate ID and create mapping
+                 let equipmentId = generateNextCardEquipmentId()
+                logicCardToEquipmentId[card.id] = equipmentId
+                equipmentIdToLogicCard[equipmentId] = card.id
+                 print("  Mapping Card \(card.description) (ID: \(card.id)) to EquipmentID \(equipmentId.rawValue)")
+
+                 // Find/Create Entity
+                 guard let cardEntity = await renderer.findOrCreateCardEntity(for: equipmentId, cardData: card) else {
+                     print("  ERROR: Failed to find/create entity for NEW Dealer Card. Skipping.")
+                     continue
                  }
-             } else {
-                  equipmentId = generateNextCardEquipmentId()
-                  logicCardToEquipmentId[card.id] = equipmentId
-                  equipmentIdToLogicCard[equipmentId] = card.id
-                  guard let cardEntity = await renderer.findOrCreateCardEntity(for: equipmentId, cardData: card) else { continue }
-                  let startTransform = renderer.getShoeTransform()
-                  let endTransform = renderer.getTransformForDealerCard(cardIndex: cardIndex, totalCardsInHand: dealerHand.cards.count)
-                  let isDealingPhase = blackjackLogic.gameState == .dealing
-                  let isHoleCardBeingDealt = (cardIndex == 1 && isDealingPhase)
-                  let dealFaceUp = !isHoleCardBeingDealt
-                  renderer.animateDealCard(cardEntity: cardEntity, from: startTransform, to: endTransform, faceUp: dealFaceUp, delay: dealDelay)
-                  dealDelay += delayIncrement
-             }
+                 // Generate Template Clone & Add to Scene
+                 // Ensure the card is face up visually when added mid-turn
+                 let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
+                 // --- Special Handling for Dealer's Hole Card Reveal ---
+                 // If this is the second card (index 1) and it *was* face down in the logic but now needs visual update
+                 if cardIndex == 1 && !card.isFaceUp {
+                     // The logic controller should have flipped isFaceUp=true before this point.
+                     // We might need an explicit flip animation call here if addDealerCard doesn't handle it.
+                     // For now, assume addDealerCard places it correctly based on card.isFaceUp.
+                     print("  Dealer hole card (\(card.description)) is being added/updated visually.")
+                 }
+                 renderer.addDealerCard(currentCard: cloneCardFromTemplate, cardIndex: cardIndex)
+                 print("  Added visual for NEW Dealer Card \(cardIndex) (\(card.description)), faceUp=\(card.isFaceUp)")
+            }
         }
-        // TODO: Remove visual cards no longer in dealer's logical hand
-        print("BlackJackGame: Finished updating hand visuals.")
+         print("[addCardsMidGame] Finished checking for new cards.")
     }
+    private func handleGameStateChange(_ newState: BlackjackGameState) {
+        print("BlackJackGame: Handling state change to \(newState)")
+        renderer.setActionButtonsEnabled(false) // Disable buttons by default
+        switch newState {
+            case .waitingForPlayers:
+                renderer.showLobbyScene()
+                isReadyToStartFromLobby = true // Allow starting from lobby again
+            case .betting:
+                renderer.showMainGameScene()
+                // TODO: Enable betting controls if implemented
+            case .dealing:
+                renderer.showMainGameScene()
+                // Visuals handled by Combine binding + startRound calling setInitialCardVisuals
+            case .playerTurn(let playerId):
+                renderer.showMainGameScene()
+                // Highlight active player
+                if let seatIndex = getSeatIndex(for: playerId) {
+                    renderer.highlightPlayerArea(seatIndex: seatIndex, highlight: true)
+                }
+                // Enable Hit/Stand only for the local player whose turn it is
+                if playerId == tabletopGame.localPlayer.id.uuid.uuidString {
+                    // Check if player is already busted - don't enable if busted
+                    if blackjackLogic.playerOutcomes[playerId] == nil { // Only enable if no outcome yet
+                        renderer.setActionButtonsEnabled(true)
+                    }
+                }
+            case .dealerTurn:
+            print("THIS DEALERTURN1")
+                renderer.revealDealerHoleCard()
 
+            case .roundOver:
+                renderer.showMainGameScene()
+                isReadyToStartFromLobby = true // Allow starting next round via lobby button
 
-    private func updateOutcomeVisuals(_ outcomes: [String: GameOutcome]) {
-        // This remains the same - display text near player/dealer areas
+        }
+     }
+    
+    func createPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) {
+        print("BlackJackGame🎲: Startin createPokerChip ")
+        renderer.spawnPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
+    }
+    
+    
+   
+    private func setInitalCardVisuals(playerHands: [String: Hand], dealerHand: Hand) async {
+        guard renderer.mainGameSceneEntity?.isEnabled ?? false else { return }
+        //INFO: PLAYER HAND loop for each player
+        for (playerId, hand) in playerHands {
+            guard let seatIndex = getSeatIndex(for: playerId) else { continue }
+            //INFO: Looping through each card per hand
+            for (cardIndex, card) in hand.cards.enumerated() {
+                let equipmentId = logicCardToEquipmentId[card.id] ?? generateNextCardEquipmentId()
+                if logicCardToEquipmentId[card.id] == nil {
+                    print("BlackJackGame: Assigning the card to the player")
+                    
+                    guard let cardEntity = await renderer.findOrCreateCardEntity(for: equipmentId, cardData: card) else {
+                        print("  [BJGame Debug] ERROR: Failed to find/create entity for Dealer Card \(cardIndex). Skipping.")
+                        continue // Skip if entity creation fails
+                    }
+                    let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
+                    renderer.addPlayerCard(currentCard: cloneCardFromTemplate, playerSeat: seatIndex, cardIndex: cardIndex)
+                    
+                }
+            }
+
+        }
+        
+        
+        //TODO: DEALER HAND loop for each card
+        for (cardIndex, card) in dealerHand.cards.enumerated() {
+            print("BlackJackGame: Assigning the card to the dealer")
+            
+            let equipmentId = logicCardToEquipmentId[card.id] ?? generateNextCardEquipmentId()
+            if logicCardToEquipmentId[card.id] == nil {
+                logicCardToEquipmentId[card.id] = equipmentId
+                equipmentIdToLogicCard[equipmentId] = card.id
+                
+                
+                guard let cardEntity = await renderer.findOrCreateCardEntity(for: equipmentId, cardData: card) else {
+                    print("  [BJGame Debug] ERROR: Failed to find/create entity for Dealer Card \(cardIndex). Skipping.")
+                    continue // Skip if entity creation fails
+                }
+                let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
+                renderer.addDealerCard(currentCard: cloneCardFromTemplate, cardIndex: cardIndex)
+            }
+        }
+
+    }
+    
+    private func updateOutcomeVisuals(_ outcomes: [String: GameOutcome]) { /* ... */
         print("BlackJackGame: Updating outcome visuals...")
-        // ... (implementation from previous version) ...
         for (playerId, outcome) in outcomes {
              guard let seatIndex = getSeatIndex(for: playerId) else { continue }
              let outcomeText: String
-             switch outcome { /* ... cases ... */
-                 case .playerBust: outcomeText = "Bust!"
-                 case .dealerBust: outcomeText = "Win! (Dealer Bust)"
-                 case .playerBlackjack: outcomeText = "Blackjack!"
-                 case .dealerBlackjack: outcomeText = "Lose (Dealer BJ)"
-                 case .playerWin: outcomeText = "Win!"
-                 case .dealerWin: outcomeText = "Lose"
-                 case .push: outcomeText = "Push"
+             switch outcome {
+                 case .playerBust: outcomeText = "Bust!"; case .dealerBust: outcomeText = "Win! (Dealer Bust)"; case .playerBlackjack: outcomeText = "Blackjack!"; case .dealerBlackjack: outcomeText = "Lose (Dealer BJ)"; case .playerWin: outcomeText = "Win!"; case .dealerWin: outcomeText = "Lose"; case .push: outcomeText = "Push"
              }
-             print("Player \(playerId) (Seat \(seatIndex)) Outcome: \(outcomeText)") // Placeholder
-             // renderer.updateStatusText(text: outcomeText, for: playerHandAreaId)
+             print("Player \(playerId) (Seat \(seatIndex)) Outcome: \(outcomeText)")
         }
         if blackjackLogic.dealerHand.isBusted { print("Dealer Outcome: Busts!") }
         else if blackjackLogic.gameState == .roundOver { print("Dealer Outcome: Stands with \(blackjackLogic.dealerHand.score)") }
-    }
+     }
 
 
     // --- Utility ---
-    private func generateNextCardEquipmentId() -> EquipmentIdentifier {
-        let id = EquipmentIdentifier(nextCardEquipmentIdCounter)
-        nextCardEquipmentIdCounter += 1
-        return id
-    }
-
-    private func getSeatIndex(for playerId: String) -> Int? {
+    private func generateNextCardEquipmentId() -> EquipmentIdentifier { /* ... */
+        let id = EquipmentIdentifier(nextCardEquipmentIdCounter); nextCardEquipmentIdCounter += 1; return id
+     }
+    private func getSeatIndex(for playerId: String) -> Int? { /* ... */
         for (index, seat) in setup.seats.enumerated() {
-            if let occupantPlayerId = observer.playerId(in: seat.id),
-               occupantPlayerId.uuid.uuidString == playerId {
-                return index
-            }
+            if let occupantPlayerId = observer.playerId(in: seat.id), occupantPlayerId.uuid.uuidString == playerId { return index }
         }
-        print("BlackJackGame: WARNING - Could not find seat index for player ID \(playerId)")
-        return nil
-    }
+        print("BlackJackGame: WARNING - Could not find seat index for player ID \(playerId)"); return nil
+     }
 
 
-    // --- GameProtocol Conformance ---
-    func resetGame() {
+    // --- GameProtocol Conformance (resetGame) ---
+     // remains the same
+    func resetGame() { /* ... */
         print("BlackJackGame: Reset game called.")
-        // --- MODIFIED Condition ---
-        // Use pattern matching to check if the game is in a resettable state
         let currentState = blackjackLogic.gameState
-        if case .roundOver = currentState {
-             // If round is over, reset to waiting (shows lobby)
-             print("Resetting to waiting state from roundOver.")
-             blackjackLogic.resetToWaitingState() // Use the internal reset function
-             // handleGameStateChange will be called via the binding to show lobby
-        } else if case .playerTurn = currentState {
-             // If it's a player's turn, reset to waiting
-             print("Resetting to waiting state from playerTurn.")
-             blackjackLogic.resetToWaitingState()
-        } else if case .dealerTurn = currentState {
-             // If it's the dealer's turn, reset to waiting
-             print("Resetting to waiting state from dealerTurn.")
-             blackjackLogic.resetToWaitingState()
-        } else if case .dealing = currentState {
-             // If dealing, reset to waiting
-             print("Resetting to resetGamewaiting state from dealing.")
-             blackjackLogic.resetToWaitingState()
-        } else if case .betting = currentState {
-             // If betting, reset to waiting
-             print("Resetting to waiting state from betting.")
-             blackjackLogic.resetToWaitingState()
-        }
-        else {
-            // If already waiting, or some other state, do nothing or log
-            print("BlackJackGame: Reset ignored, state is \(currentState).")
-        }
+        if case .roundOver = currentState { blackjackLogic.resetToWaitingState() }
+        else if case .playerTurn = currentState { blackjackLogic.resetToWaitingState() }
+        else if case .dealerTurn = currentState { blackjackLogic.resetToWaitingState() }
+        else if case .dealing = currentState { blackjackLogic.resetToWaitingState() }
+        else if case .betting = currentState { blackjackLogic.resetToWaitingState() }
+        else { print("BlackJackGame: Reset ignored, state is \(currentState).") }
+     }
+    
+    func addHitCardToPlayer() {
+        
     }
+    
+    func playerDidTapReadyButton() {
+            guard blackjackLogic.gameState == .betting else {
+                print("BlackJackGame: Cannot tap 'Ready'. Not in betting state. Current state: \(blackjackLogic.gameState)")
+                return
+            }
+            let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
+            guard (blackjackLogic.playerBets[localPlayerIdString] ?? 0) > 0 else {
+                print("BlackJackGame: Player \(localPlayerIdString) must place a bet before tapping 'Ready'.")
+                // Optionally provide UI feedback here (e.g., an alert or disabling the ready button)
+                return
+            }
+
+            print("BlackJackGame: Player \(localPlayerIdString) tapped 'Ready' button.")
+            blackjackLogic.playerReadyAfterBetting(playerId: localPlayerIdString)
+
+            // Optionally, GameRenderer can update the 'Ready' button's appearance (e.g., show a checkmark)
+            // if let seatIndex = getSeatIndex(for: localPlayerIdString) {
+            //     renderer.updatePlayerReadyIndicator(seatIndex: seatIndex, isReady: true)
+            // }
+        }
+    
+    func setBettingEntityStart() {
+        renderer.setBettingSettingStart()
+    }
+
 
     // --- Cleanup function ---
-    func cleanupBeforeDismiss() {
+    func cleanupBeforeDismiss() { /* ... */
          print("BlackJackGame: Cleaning up before dismiss...")
-         //tabletopGame.leave()
-         renderer.cleanup() // Call renderer's cleanup
+         seatWaitTask?.cancel() // Cancel the wait task if it's still running
+         seatWaitTask = nil
+        // tabletopGame.leave()
+         renderer.cleanup()
          print("BlackJackGame: Cancelling Combine subscriptions.")
          cancellables.forEach { $0.cancel() }
          cancellables.removeAll()
-    }
+     }
 
     // --- Deinitialization ---
-    deinit {
+    deinit { /* ... */
         print("BlackJackGame: Deinitializing. Cleanup should have happened in cleanupBeforeDismiss.")
-    }
-}
-
-
-// Helper extension for SIMD Quaternions (Keep as is)
-extension simd_quatf {
-    var isFaceUp: Bool {
-        let angle = self.angle
-        let axis = self.axis
-        return abs(axis.y) < 0.1 || abs(angle) < 0.1 || abs(angle - .pi * 2) < 0.1
-    }
-    var isFaceDown: Bool {
-        let angle = self.angle
-        let axis = self.axis
-        return abs(axis.y - 1.0) < 0.1 && abs(angle - .pi) < 0.1
-    }
+        // Ensure task is cancelled on deinit as a safeguard
+      //  seatWaitTask?.cancel()
+     }
 }
 

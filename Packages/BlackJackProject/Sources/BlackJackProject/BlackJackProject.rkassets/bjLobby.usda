@@ -25,7 +25,7 @@ def Xform "Root"
         double radius = 0.1
         quatf xformOp:orient = (0.72353673, 0.6884414, 0.03807044, -0.033071868)
         float3 xformOp:scale = (1, 0.15, 1)
-        float3 xformOp:translate = (-0.24461302, 1.0785444, 0.11528807)
+        float3 xformOp:translate = (-0.35497695, 1.0236119, -0.97838867)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def Material "DefaultMaterial"
@@ -87,7 +87,7 @@ def Xform "Root"
         int ui:nodegraph:node:stackingOrder = 1
         quatf xformOp:orient = (0.71701884, 0.6834706, -0.090933494, 0.1023869)
         float3 xformOp:scale = (1.0000002, 0.15, 1)
-        float3 xformOp:translate = (0.28270936, 1.0656226, 0.06272428)
+        float3 xformOp:translate = (0.33134383, 1.0110136, -1.055289)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def Material "DefaultMaterial"

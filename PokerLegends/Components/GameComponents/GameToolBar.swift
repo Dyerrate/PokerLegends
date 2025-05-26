@@ -15,10 +15,7 @@ struct GameToolBar: ToolbarContent {
 
     let game: GameProtocol
     
-    
-    
     init(game: GameProtocol) {
-        
         print("cheeks")
         self.game = game
     }

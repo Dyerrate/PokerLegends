@@ -9,7 +9,7 @@ import Foundation
 
 // Represents a hand of playing cards for a player or dealer.
 struct Hand: Identifiable, Codable {
-    let id = UUID() // Unique identifier for the hand instance
+    var id = UUID() // Unique identifier for the hand instance
     var cards: [PlayingCard] = [] // The cards currently in the hand
 
     // Calculates the best possible Blackjack score for the hand.

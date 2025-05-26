@@ -50,6 +50,8 @@ class BlackjackLogicController: ObservableObject {
     @Published private(set) var playerOutcomes: [String: GameOutcome] = [:] // Player ID -> Outcome
     @Published private(set) var deck: [PlayingCard] = []
     @Published private(set) var activePlayerIds: [String] = [] // IDs of players in the current round
+    @Published private(set) var playersReadyAfterBetting: Set<String> = []
+    @Published private(set) var allPlayersHaveBet: Bool = false
 
     // --- Private Properties ---
     private var shoe: [PlayingCard] = [] // Cards to be dealt from
@@ -89,19 +91,19 @@ class BlackjackLogicController: ObservableObject {
         playerHands.removeValue(forKey: playerId)
         playerBets.removeValue(forKey: playerId)
         playerOutcomes.removeValue(forKey: playerId)
+        playersReadyAfterBetting.remove(playerId)
         activePlayerIds.removeAll { $0 == playerId }
         print("Player \(playerId) removed.")
         // If the removed player was the current player, advance the turn
         if case .playerTurn(let currentId) = gameState, currentId == playerId {
             advanceToNextPlayer()
+        } else if gameState == .betting{
+            checkIfAllPlayersHaveBet()
         }
         if activePlayerIds.isEmpty {
             gameState = .waitingForPlayers
         }
     }
-
-    // --- Game Flow ---
-
     /// Starts a new round of Blackjack.
     func startNewRound() {
         guard !activePlayerIds.isEmpty else {
@@ -111,9 +113,11 @@ class BlackjackLogicController: ObservableObject {
         }
 
         print("Starting new round...")
+        allPlayersHaveBet = false
         // 1. Reset hands, bets (keep players, maybe reset bets later), outcomes
         dealerHand.reset()
         playerOutcomes.removeAll()
+        playersReadyAfterBetting.removeAll()
         for id in activePlayerIds {
             playerHands[id]?.reset()
             // TODO: Handle betting properly - reset bets here or require new bets
@@ -128,31 +132,30 @@ class BlackjackLogicController: ObservableObject {
                 shoe.append(contentsOf: PlayingCard.standardDeck())
             }
             shoe.shuffle()
-            deck = shoe // Update published deck for potential UI display
+            deck = shoe
+            print("Round started. State: \(gameState). Waiting for bets.")
+
+            // Update published deck for potential UI display
         } else {
              deck = shoe // Ensure published deck reflects current shoe
         }
-
-
         // 3. Set state to Betting (or Dealing if betting is handled elsewhere)
+        gameState = .betting
+
         // For now, skipping betting phase and going straight to dealing
-         gameState = .dealing
-         dealInitialHands() // Deal immediately after shuffling for this example
+        // Deal immediately after shuffling for this example
         // gameState = .betting // TODO: Implement betting phase UI and logic
+        print("THIS IS THE RUNERS UP")
         print("Round started. State: \(gameState)")
     }
 
-     /// Places a bet for a player. Should be called during the .betting state.
-     /// - Parameters:
-     ///   - playerId: The ID of the player betting.
-     ///   - amount: The amount to bet.
      func placeBet(playerId: String, amount: Int) {
          guard case .betting = gameState else {
              print("Cannot place bet outside of betting phase.")
              return
          }
          guard playerHands[playerId] != nil else {
-             print("Player \(playerId) not found.")
+             print("PLACEBET: Player \(playerId) not found.")
              return
          }
          guard amount > 0 else {
@@ -162,6 +165,8 @@ class BlackjackLogicController: ObservableObject {
          // TODO: Check if player has enough money (requires integrating UserModel)
          playerBets[playerId] = amount
          print("Player \(playerId) bet \(amount).")
+         checkIfAllPlayersHaveBet()
+
 
          // TODO: Check if all active players have placed bets to proceed
          // let allBetsPlaced = activePlayerIds.allSatisfy { playerBets[$0] ?? 0 > 0 }
@@ -170,6 +175,68 @@ class BlackjackLogicController: ObservableObject {
          //     dealInitialHands()
          // }
      }
+    
+    private func checkIfAllPlayersHaveBet() {
+            // This check assumes that a bet > 0 means the player has placed their bet.
+            // If a player can bet 0, this logic needs adjustment.
+            let betsPlacedByActivePlayers = activePlayerIds.allSatisfy { playerBets[$0] ?? 0 > 0 }
+
+            if betsPlacedByActivePlayers && !activePlayerIds.isEmpty {
+                allPlayersHaveBet = true
+                print("All active players have placed their bets.")
+                gameState = .dealing
+                dealInitialHands()
+            } else {
+                allPlayersHaveBet = false
+                print("Waiting for more bets. Current bets: \(playerBets)")
+            }
+        }
+    
+    func playerReadyAfterBetting(playerId: String) {
+            guard case .betting = gameState else {
+                print("Cannot ready up outside of betting phase.")
+                return
+            }
+            guard playerBets[playerId] ?? 0 > 0 else {
+                print("Player \(playerId) must place a bet before readying up.")
+                // Optionally, you could allow readying up without a bet if your game rules permit (e.g. playing a round with 0 bet)
+                // For now, we assume a bet is required.
+                return
+            }
+
+            playersReadyAfterBetting.insert(playerId)
+            print("Player \(playerId) is ready.")
+            checkIfAllBettingPlayersAreReady()
+        }
+    
+    private func checkIfAllBettingPlayersAreReady() {
+           // Get a list of players who are actually participating (have placed a bet > 0)
+           let participatingPlayerIds = activePlayerIds.filter { playerBets[$0] ?? 0 > 0 }
+
+           // If there are no participating players yet, do nothing.
+           if participatingPlayerIds.isEmpty && !activePlayerIds.isEmpty {
+               print("No players have placed bets yet.")
+               return
+           }
+           
+           // If there are no active players at all (e.g., everyone left), perhaps reset.
+           if activePlayerIds.isEmpty && gameState == .betting {
+               print("All players left during betting. Resetting to waiting.")
+               gameState = .waitingForPlayers
+               return
+           }
+
+           // Check if all *participating* players are in the ready set.
+           let allParticipantsReady = participatingPlayerIds.allSatisfy { playersReadyAfterBetting.contains($0) }
+
+           if allParticipantsReady && !participatingPlayerIds.isEmpty {
+               print("All participating players have placed bets and are ready. Proceeding to deal.")
+               gameState = .dealing
+               dealInitialHands()
+           } else {
+               print("Waiting for more players to place bets and/or ready up. Ready players: \(playersReadyAfterBetting.count)/\(participatingPlayerIds.count) of those who bet.")
+           }
+       }
 
 
     /// Deals the initial two cards to each player and the dealer.
@@ -224,11 +291,6 @@ class BlackjackLogicController: ObservableObject {
                     // This player's turn is skipped
                 }
             }
-
-            // If any player had blackjack but dealer didn't, round might end for them
-            // but proceed for others. If *only* blackjacks occurred, determine outcome.
-            // For simplicity now, just move to the first non-blackjack player's turn.
-
             currentPlayerIndex = activePlayerIds.firstIndex(where: { !(playerHands[$0]?.isBlackjack ?? false) }) ?? -1
 
             if currentPlayerIndex != -1 {
@@ -254,6 +316,7 @@ class BlackjackLogicController: ObservableObject {
             print("Not Player \(playerId)'s turn.")
             return
         }
+        // Use a temporary variable for the hand to modify it
         guard var hand = playerHands[playerId] else {
             print("Player \(playerId) hand not found.")
             return
@@ -265,49 +328,89 @@ class BlackjackLogicController: ObservableObject {
             if let card = dealCard() {
                 var dealtCard = card
                 dealtCard.isFaceUp = true // Make sure dealt card is face up
-                playerHands[playerId]?.addCard(dealtCard)
-                hand = playerHands[playerId]! // Re-fetch hand after modification
-                print("Player \(playerId) Hand: \(hand.description)")
+                hand.addCard(dealtCard) // Add to the temporary hand copy
 
-                if hand.isBusted {
-                    print("Player \(playerId) busted!")
-                    playerOutcomes[playerId] = .playerBust
+                // --- IMPORTANT: Update the published property ---
+                playerHands[playerId] = hand
+                // ---
+
+                print("Player \(playerId) Hand: \(hand.description)") // Log the updated hand
+
+                // --- MODIFIED: Check for 21 or Bust ---
+                if hand.score == 21 {
+                    print("Player \(playerId) has 21!")
+                    // Turn automatically ends when player hits 21
                     advanceToNextPlayer()
+                } else if hand.isBusted {
+                    print("Player \(playerId) busted!")
+                    // Update outcomes directly on the published property
+                    playerOutcomes[playerId] = .playerBust
+                    advanceToNextPlayer() // Check next player or dealer
                 } else {
-                    // Player can hit again, state remains .playerTurn(playerId)
+                    // Player score is < 21, can hit again
                     print("Player \(playerId) can act again.")
+                    // No state change needed here, just wait for next action or timeout
                 }
+                // --- END MODIFICATION ---
             } else {
                  print("Error: Deck is empty during player hit.")
-                 // Handle error state appropriately
+                 // Handle error state appropriately (e.g., end round?)
+                 // For now, just advance turn as player cannot hit
+                 advanceToNextPlayer()
             }
 
         case .stand:
             print("Player \(playerId) stands with score \(hand.score).")
+            // No change to hand or outcome needed here, just advance turn
             advanceToNextPlayer()
         }
     }
 
     /// Advances the game state to the next player's turn or to the dealer's turn.
     private func advanceToNextPlayer() {
-        currentPlayerIndex += 1
-        // Find the next player who hasn't busted or got Blackjack
-         while currentPlayerIndex < activePlayerIds.count {
-             let nextPlayerId = activePlayerIds[currentPlayerIndex]
-             if playerOutcomes[nextPlayerId] == nil { // If no outcome decided yet (not bust/blackjack)
-                 gameState = .playerTurn(playerId: nextPlayerId)
-                 print("Moving to Player \(nextPlayerId)'s turn.")
-                 return
-             }
-             currentPlayerIndex += 1 // Skip players who are done
-         }
+           currentPlayerIndex += 1
+           // Find the next player who hasn't busted or got Blackjack
+            while currentPlayerIndex < activePlayerIds.count {
+                let nextPlayerId = activePlayerIds[currentPlayerIndex]
+                // Check if player has a decided outcome already
+                if playerOutcomes[nextPlayerId] == nil {
+                    // This player hasn't busted or got Blackjack, it's their turn.
+                    gameState = .playerTurn(playerId: nextPlayerId)
+                    print("Moving to Player \(nextPlayerId)'s turn.")
+                    return // Exit function, wait for player action
+                }
+                // Otherwise, player is already done (Bust/BJ), increment and check next
+                currentPlayerIndex += 1
+            }
 
 
-        // If no more players left to act, move to dealer's turn
-        print("All players finished. Moving to Dealer's turn.")
-        gameState = .dealerTurn
-        dealerPlays()
-    }
+           // --- MODIFIED LOGIC ---
+           // If loop completes, no more players left to act. Check if dealer needs to play.
+           print("All players finished acting.")
+
+           // Check if there are any players who stood (outcome is still nil)
+           let playersWhoStood = activePlayerIds.filter { id in
+               playerOutcomes[id] == nil // Outcome is nil only if player stood (and didn't get BJ initially)
+           }
+
+           if playersWhoStood.isEmpty {
+               // All players either busted or got Blackjack initially. Dealer doesn't need to play.
+               print("All players busted or had Blackjack. Determining outcome immediately.")
+               // Reveal dealer's hole card if it hasn't been revealed (e.g., if dealer had potential Blackjack)
+               // Ensure we modify the published property
+               if dealerHand.cards.count > 1 && !dealerHand.cards[1].isFaceUp {
+                    dealerHand.cards[1].isFaceUp = true
+                    print("Dealer reveals second card (for outcome determination). Hand: \(dealerHand.description)")
+               }
+               determineOutcome() // Go straight to outcome determination
+           } else {
+               // At least one player stood. Dealer must play.
+               print("At least one player stood. Moving to Dealer's turn.")
+               gameState = .dealerTurn
+               dealerPlays() // Start dealer's turn
+           }
+           // --- END OF MODIFIED LOGIC ---
+       }
 
     /// Executes the dealer's turn based on standard Blackjack rules.
     private func dealerPlays() {
@@ -408,6 +511,7 @@ class BlackjackLogicController: ObservableObject {
         // Reset hands, outcomes etc. if needed when going back to waiting
         dealerHand.reset()
         playerOutcomes.removeAll()
+        playersReadyAfterBetting.removeAll() // Clear ready set
         activePlayerIds.forEach { id in
             playerHands[id]?.reset()
             playerBets[id] = 0 // Reset bets too
