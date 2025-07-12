@@ -4,7 +4,7 @@
       [
         "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
         "Root",
-        "closeGameButton"
+        "startBJButton"
       ],
       {
         "isExpanded" : true,
@@ -21,7 +21,7 @@
       [
         "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
         "Root",
-        "startBJButton"
+        "closeGameButton"
       ],
       {
         "isExpanded" : true,
@@ -102,27 +102,7 @@
     "objectMetadataList" : [
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "betZoneTrigger"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "_5_heart",
-        "Geom"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "Group"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -141,7 +121,26 @@
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root",
-        "PlayerHandAreaMarker_6"
+        "Group"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "_5_heart",
+        "Geom"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "betZoneTrigger"
       ],
       {
         "isExpanded" : true,
@@ -160,7 +159,8 @@
       },
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root"
+        "Root",
+        "PlayerHandAreaMarker_6"
       ],
       {
         "isExpanded" : true,

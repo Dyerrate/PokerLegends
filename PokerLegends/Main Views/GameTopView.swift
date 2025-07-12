@@ -23,9 +23,7 @@ struct GameTopView: View {
     @State private var activityManager: GroupActivityManager?
     @State private var hoverSub: Cancellable?
     @State private var initialOffsetFromChipToTouch: SIMD3<Float>? = nil
-
-
-
+    @State var activeChips: [Entity] = []
 
     // Name matching the entities in your Reality Composer Pro scene
     let startButtonName = "startBJButton"
@@ -52,37 +50,22 @@ struct GameTopView: View {
 
                          // Check for bet zone trigger
                          let names = [a.name, b.name]
-                         if names.contains("betZoneTrigger") {
-                             let chip = a.name == "betZoneTrigger" ? b : a
-                             print("🎯 Chip collided with bet zone: \(chip.name)")
-                             if let chipComponents = chip.components[PokerChipModelComponenet.self] {
-                                 print("we are trying to update the pot for value: \(chipComponents.chipValue)")
-                             }
+                         guard names.contains("betZoneTrigger") else { return }
 
-                             // Now inspect the chip for value-related info
-                             if chip.name.contains("red") {
-                                 print("🟥 Red chip collided → $10")
-                             } else if chip.name.contains("green") {
-                                 print("🟩 Green chip collided → $25")
-                             } else if chip.name.contains("blue") {
-                                 print("🟦 Blue chip collided → $100")
-                             } else {
-                                 print("❓ Unknown chip color")
-                             }
+                        let chip = a.name == "betZoneTrigger" ? b : a
 
-                             // Optional: remove from scene
-                             chip.removeFromParent()
-                         }
+                           // Check for value component
+                        guard var chipData = chip.components[PokerChipModelComponenet.self] as? PokerChipModelComponenet else { return }
+                           // Prevent duplicate adds
+                        guard chipData.hasBeenCounted == false else { return }
+                           // Process the chip
+                        print("💰 Chip: \(chip.name), +\(chipData.chipValue)")
+                        handlePlayerBet(chipValue: chipData.chipValue)
+                           //currentPot += chipData.value
+                           // Mark it as counted and update the component
+                        chipData.hasBeenCounted = true
+                        chip.components.set(chipData)
                      }
-                    // --- Optional: Verify button entities are present after loading ---
-                    // Note: Renderer loads asynchronously, so direct check here might be early.
-                    // Verification is better handled within GameRenderer or BlackJackGame after load.
-                    // Example (won't work reliably here due to timing):
-                    // if loadedGame.renderer.root.findEntity(named: startButtonName) != nil {
-                    //     print("Start button found in loaded content (initial check).")
-                    // } else {
-                    //     print("Start button NOT found in loaded content (initial check).")
-                    // }
 
                 } update: { content in
                     // Content updates can happen here if needed
@@ -130,36 +113,38 @@ struct GameTopView: View {
                             await spawnChip(at: value.location3D, relativeTo: value.entity, tappedChipColor: "blue")
                         }
                     }
-                    else if value.entity.name == "bettingReadyCheck" {
-                        
-                    }
+                
                 })
                 
                 .gesture(
                     
                     DragGesture(minimumDistance: 0, coordinateSpace: .global)
                     .targetedToAnyEntity()
-                    .onChanged{ value in
-                        print("what we are draggin \(value.entity.name)")
-                        guard value.entity.name.starts(with: "chip") else {return}
+                    .onChanged { value in
+                        guard value.entity.name.starts(with: "chip") else { return }
+                        
                         let chip = value.entity
-                        let currentDragWorldPosition = value.convert(value.location3D, from: .local, to: .scene)
+                        
+                        // Convert location3D to world space
+                        let handWorldPosition = value.convert(value.location3D, from: .local, to: .scene)
+                        
+                        // Compute offset once on first frame
                         if self.initialOffsetFromChipToTouch == nil {
-                            self.initialOffsetFromChipToTouch = chip.position(relativeTo: nil) - currentDragWorldPosition
+                            let chipWorldPosition = chip.position(relativeTo: nil)
+                            self.initialOffsetFromChipToTouch = chipWorldPosition - handWorldPosition
                             
-                            if var physicsBody = chip.components[PhysicsBodyComponent.self] {
-                                if physicsBody.mode != .kinematic {
-                                    physicsBody.mode = .kinematic
-                                    chip.components.set(physicsBody)
-                                }
+                            // Set to kinematic mode for dragging
+                            if var body = chip.components[PhysicsBodyComponent.self] {
+                                body.mode = .kinematic
+                                chip.components.set(body)
                             }
                         }
                         
+                        // Drag movement
                         if let offset = self.initialOffsetFromChipToTouch {
-                            let newPosition = currentDragWorldPosition + offset
-                            chip.position = newPosition
+                            let newPosition = handWorldPosition + offset
+                            chip.setPosition(newPosition, relativeTo: nil)
                         }
-                        print("Dragging chnage: ")
                         
                     }
                     .onEnded { value in
@@ -210,18 +195,30 @@ struct GameTopView: View {
         
     }
     private func spawnChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) async {
-        
         print("GameTopView 🔭: starting the spawnChip task")
-        game?.createPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
+        var newChip = game?.createPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
+        self.activeChips.append(newChip!)
+        print("The new added chips are: \(self.activeChips)")
+        self.activeChips.removeAll()
+        
+    }
+    
+    func removeAllDaChips() {
+        print("GameTopView 🔭: removing all chips")
+        activeChips.removeAll()
     }
     
     private func handleReadyCheck() {
-        
+        game?.handleReadyPlayers()
     }
     
     private func handleHitButton() {
         game?.playerDidHit()
         print("GameTopView: Adding Hit card to player")
+    }
+    
+    private func handlePlayerBet(chipValue: Int) {
+        game?.blackjackLogic.placeBet(playerId: game!.tabletopGame.localPlayer.id.uuid.uuidString, amount: chipValue)
     }
 
     private func handleStandButton() {

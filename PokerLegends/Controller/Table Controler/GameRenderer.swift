@@ -53,7 +53,10 @@ class GameRenderer: TabletopGame.RenderDelegate {
     private var greenParentChip: Entity?
     private var redParentChip: Entity?
 
-    
+    //Active Tracking
+    @State var activeCards: [Entity] = []
+    @State var activeChips: [Entity] = []
+
 
 
     // --- Card Rendering ---
@@ -85,8 +88,8 @@ class GameRenderer: TabletopGame.RenderDelegate {
             self.startButtonEntity = lobby.findEntity(named: "startBJButton")
             self.closeButtonEntity = lobby.findEntity(named: "closeGameButton")
             // --- Added Print for Lobby Buttons ---
-            print("GameRenderer: Found startBJButton? \(self.startButtonEntity != nil)")
-            print("GameRenderer: Found closeGameButton? \(self.closeButtonEntity != nil)")
+//            print("GameRenderer: Found startBJButton? \(self.startButtonEntity != nil)")
+//            print("GameRenderer: Found closeGameButton? \(self.closeButtonEntity != nil)")
             // ---
             verifyInteractionComponents(for: startButtonEntity, name: "startBJButton")
             verifyInteractionComponents(for: closeButtonEntity, name: "closeGameButton")
@@ -316,6 +319,10 @@ class GameRenderer: TabletopGame.RenderDelegate {
         dealerHoleCardAlreadyFlipped = false
         cardEntities.removeAll()
      }
+    func newRemoveAllCards() {
+        print("thought we removed all")
+        self.activeCards.removeAll()
+    }
 
     // --- Card Positioning ---
     func getShoeTransform() -> Transform {
@@ -474,6 +481,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
             duration: 0.6,
             timingFunction: .easeInOut
         )
+        self.activeCards.append(currentCard)
         Task { @MainActor in
             
             await playFlip(on: currentCard, toFaceUp: true)
@@ -512,6 +520,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
             duration: 0.6,
             timingFunction: .easeInOut
         )
+        self.activeCards.append(currentCard)
         print("📌 addDealerCard ▶︎ move() scheduled, finalPos = \(finalTransform.translation)")
 
         if(cardIndex == 0 || cardIndex > 1) {
@@ -585,7 +594,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
 
         // Measure bounds of full visual group
         let bounds = container.visualBounds(relativeTo: nil)
-        let currentSize = bounds.extents * 2.25
+        let currentSize = bounds.extents * 0.5
         let scaleRatioX = (targetSize.x / currentSize.x) * 3
         let scaleRatioZ = (targetSize.z / currentSize.z) * 0.5
         let uniformScale = min(scaleRatioX, scaleRatioZ)
@@ -617,26 +626,27 @@ class GameRenderer: TabletopGame.RenderDelegate {
         
     }
     
-    func spawnPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) {
+    func spawnPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) -> Entity {
         print("GameRenderer 🪩: spawnPokerChip - started")
+        var returnedChip: Entity!
 
         switch tappedChipColor {
         case "red":
-            _buildPokerChipHelper(at: position3D, relativeTo: self.redParentChip!, chipValue: 500)
+            returnedChip = _buildPokerChipHelper(at: position3D, relativeTo: self.redParentChip!, chipValue: 500)
             
         case "green":
-            _buildPokerChipHelper(at: position3D, relativeTo: self.greenParentChip!, chipValue: 100)
+            returnedChip =  _buildPokerChipHelper(at: position3D, relativeTo: self.greenParentChip!, chipValue: 100)
         case "blue":
-            _buildPokerChipHelper(at: position3D, relativeTo: self.blueParentChip!, chipValue: 50)
+            returnedChip =  _buildPokerChipHelper(at: position3D, relativeTo: self.blueParentChip!, chipValue: 50)
         default:
             print("GameRenderer 🪩: spawnPokerChip - no matching chip color?")
         }
-        
+        return returnedChip!
     }
     
-    private func _buildPokerChipHelper(at position3D: Point3D, relativeTo reference: Entity, chipValue: Int) {
-        
-        guard let tray = self.mainGameSceneEntity else {return}
+    private func _buildPokerChipHelper(at position3D: Point3D, relativeTo reference: Entity, chipValue: Int) -> Entity {
+                
+        let tray = self.mainGameSceneEntity!
         print("this is the tray?\(tray.name)")
         
         let chip = reference.clone(recursive: true)
@@ -655,8 +665,9 @@ class GameRenderer: TabletopGame.RenderDelegate {
         }
         chip.isEnabled = true
           chip.generateCollisionShapes(recursive: true)
-
+        
           tray.addChild(chip)
+        return chip
     }
 
     // --- Visual Feedback ---

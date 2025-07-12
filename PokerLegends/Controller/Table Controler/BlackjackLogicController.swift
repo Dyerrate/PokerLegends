@@ -121,7 +121,6 @@ class BlackjackLogicController: ObservableObject {
         for id in activePlayerIds {
             playerHands[id]?.reset()
             // TODO: Handle betting properly - reset bets here or require new bets
-            playerBets[id] = 10 // Placeholder bet
         }
 
         // 2. Prepare the deck/shoe if needed
@@ -165,7 +164,6 @@ class BlackjackLogicController: ObservableObject {
          // TODO: Check if player has enough money (requires integrating UserModel)
          playerBets[playerId] = amount
          print("Player \(playerId) bet \(amount).")
-         checkIfAllPlayersHaveBet()
 
 
          // TODO: Check if all active players have placed bets to proceed
@@ -176,7 +174,7 @@ class BlackjackLogicController: ObservableObject {
          // }
      }
     
-    private func checkIfAllPlayersHaveBet() {
+    func checkIfAllPlayersHaveBet() {
             // This check assumes that a bet > 0 means the player has placed their bet.
             // If a player can bet 0, this logic needs adjustment.
             let betsPlacedByActivePlayers = activePlayerIds.allSatisfy { playerBets[$0] ?? 0 > 0 }

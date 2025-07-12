@@ -395,15 +395,17 @@ class BlackJackGame: @preconcurrency GameProtocol {
                 renderer.revealDealerHoleCard()
 
             case .roundOver:
+            
+         //   self.activePokerChip.removeAll()
                 renderer.showMainGameScene()
                 isReadyToStartFromLobby = true // Allow starting next round via lobby button
 
         }
      }
     
-    func createPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) {
+    func createPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) -> Entity {
         print("BlackJackGame🎲: Startin createPokerChip ")
-        renderer.spawnPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
+        return renderer.spawnPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
     }
     
     
@@ -478,6 +480,10 @@ class BlackJackGame: @preconcurrency GameProtocol {
         }
         print("BlackJackGame: WARNING - Could not find seat index for player ID \(playerId)"); return nil
      }
+    
+    func handleReadyPlayers() {
+        blackjackLogic.playerReadyAfterBetting(playerId: tabletopGame.localPlayer.id.uuid.uuidString)
+    }
 
 
     // --- GameProtocol Conformance (resetGame) ---
