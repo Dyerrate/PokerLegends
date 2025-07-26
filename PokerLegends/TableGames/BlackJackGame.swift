@@ -155,7 +155,6 @@ class BlackJackGame: @preconcurrency GameProtocol {
         guard blackjackLogic.gameState == .waitingForPlayers || blackjackLogic.gameState == .roundOver else { return }
         print("BlackJackGame: Starting new round logic...")
         renderer.showMainGameScene()
-        renderer.removeAllCardEntities()
         logicCardToEquipmentId.removeAll()
         equipmentIdToLogicCard.removeAll()
         blackjackLogic.startNewRound()
@@ -180,7 +179,6 @@ class BlackJackGame: @preconcurrency GameProtocol {
 
             // Visual update for the bet placed would happen here via GameRenderer
             if let seatIndex = getSeatIndex(for: localPlayerIdString) {
-                // Task { await renderer.updateBetVisualForPlayer(playerId: localPlayerIdString, amount: amount, seatIndex: seatIndex) }
                  print("BlackJackGame: Bet placed by \(localPlayerIdString). UI should now allow 'Ready'.")
             }
             // DO NOT automatically call ready here. Player must explicitly tap the ready button.
@@ -391,16 +389,23 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     }
                 }
             case .dealerTurn:
-            print("THIS DEALERTURN1")
+                print("THIS DEALERTURN1")
                 renderer.revealDealerHoleCard()
 
             case .roundOver:
-            
-         //   self.activePokerChip.removeAll()
-                renderer.showMainGameScene()
-                isReadyToStartFromLobby = true // Allow starting next round via lobby button
 
-        }
+                Task {
+                    print("BlackJackGame: Waiting 3 seconds before starting next round...")
+                    try? await Task.sleep(for: .seconds(4))
+                    renderer.removeAllBettingChipsToWiner()
+                    renderer.removeAllCards()
+                    renderer.showMainGameScene()
+                    isReadyToStartFromLobby = true
+                    print("BlackJackGame: 3 seconds elapsed, starting next round")
+                    startRound() // Automatically start the next round
+                }// Allow starting next round via lobby button
+
+            }
      }
     
     func createPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) -> Entity {
@@ -472,9 +477,9 @@ class BlackJackGame: @preconcurrency GameProtocol {
 
     // --- Utility ---
     private func generateNextCardEquipmentId() -> EquipmentIdentifier { /* ... */
-        let id = EquipmentIdentifier(nextCardEquipmentIdCounter); nextCardEquipmentIdCounter += 1; return id
+        let 🆔 = EquipmentIdentifier(nextCardEquipmentIdCounter); nextCardEquipmentIdCounter += 1; return 🆔
      }
-    private func getSeatIndex(for playerId: String) -> Int? { /* ... */
+    func getSeatIndex(for playerId: String) -> Int? { /* ... */
         for (index, seat) in setup.seats.enumerated() {
             if let occupantPlayerId = observer.playerId(in: seat.id), occupantPlayerId.uuid.uuidString == playerId { return index }
         }
@@ -496,7 +501,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
         else if case .dealerTurn = currentState { blackjackLogic.resetToWaitingState() }
         else if case .dealing = currentState { blackjackLogic.resetToWaitingState() }
         else if case .betting = currentState { blackjackLogic.resetToWaitingState() }
-        else { print("BlackJackGame: Reset ignored, state is \(currentState).") }
+        else { print("BlackJackGame: Reset ignored, state🇺🇸 is \(currentState).") }
      }
     
     func addHitCardToPlayer() {
@@ -540,6 +545,9 @@ class BlackJackGame: @preconcurrency GameProtocol {
          cancellables.forEach { $0.cancel() }
          cancellables.removeAll()
      }
+    
+    
+    
 
     // --- Deinitialization ---
     deinit { /* ... */

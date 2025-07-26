@@ -69,7 +69,8 @@
     "objectMetadataList" : [
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
-        "Root"
+        "Root",
+        "cardSleeve"
       ],
       {
         "isExpanded" : true,
@@ -77,8 +78,7 @@
       },
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
-        "Root",
-        "cardSleeve"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -102,45 +102,9 @@
     "objectMetadataList" : [
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "Deal",
-        "Track"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "Group"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root",
         "_5_heart",
         "Geom"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "betZoneTrigger"
       ],
       {
         "isExpanded" : true,
@@ -160,7 +124,43 @@
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root",
+        "Deal",
+        "Track"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "betZoneTrigger"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
         "PlayerHandAreaMarker_6"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "Group"
       ],
       {
         "isExpanded" : true,

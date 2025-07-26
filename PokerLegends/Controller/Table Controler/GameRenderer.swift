@@ -54,8 +54,10 @@ class GameRenderer: TabletopGame.RenderDelegate {
     private var redParentChip: Entity?
 
     //Active Tracking
-    @State var activeCards: [Entity] = []
-    @State var activeChips: [Entity] = []
+    var activeCards: [Entity] = []
+    var allChips: [Entity] = []
+    var activeBettingChips: [Entity] = []
+    
 
 
 
@@ -191,7 +193,6 @@ class GameRenderer: TabletopGame.RenderDelegate {
         lobbySceneEntity?.isEnabled = true
         startButtonEntity?.isEnabled = true
         closeButtonEntity?.isEnabled = true
-        removeAllCardEntities()
      }
     
     func showMainGameScene() {
@@ -200,8 +201,34 @@ class GameRenderer: TabletopGame.RenderDelegate {
         startButtonEntity?.isEnabled = false
         closeButtonEntity?.isEnabled = false
         mainGameSceneEntity?.isEnabled = true
+        
         //addPlayerActionButtons()
      }
+    
+    func clearCheckRound() {
+        
+    }
+    
+    func updateChips(addedChip: Entity) {
+        if (allChips.contains(addedChip)) {
+            allChips.removeAll { $0.name == addedChip.name }
+            activeBettingChips.append(addedChip)
+        }
+    }
+    
+    func removeAllBettingChips() {
+        for chip in activeBettingChips {
+            chip.removeFromParent()
+        }
+        allChips.removeAll()
+    }
+    
+    func removeNoneBettingChips() {
+        for chip in allChips {
+            chip.removeFromParent()
+        }
+        allChips.removeAll()
+    }
 
     // --- Card Model Loading ---
     /// Loads (or retrieves from cache) the prototype entity for a specific card USDZ model.
@@ -313,16 +340,6 @@ class GameRenderer: TabletopGame.RenderDelegate {
             entity.removeFromParent()
         }
      }
-    func removeAllCardEntities() {
-        print("GameRenderer: Removing all card entities...")
-        cardEntities.values.forEach { $0.removeFromParent() }
-        dealerHoleCardAlreadyFlipped = false
-        cardEntities.removeAll()
-     }
-    func newRemoveAllCards() {
-        print("thought we removed all")
-        self.activeCards.removeAll()
-    }
 
     // --- Card Positioning ---
     func getShoeTransform() -> Transform {
@@ -347,10 +364,10 @@ class GameRenderer: TabletopGame.RenderDelegate {
         // 1. Get marker's base position and rotation relative to the table
         let markerPosRelativeToRef = marker.position(relativeTo: referenceEntity)
         let markerRotRelativeToRef = marker.orientation(relativeTo: referenceEntity)
-
+        //CARD SIZES
         // 2. Calculate the SMALL offset for fanning/lifting relative to the marker's center
         let totalWidth = Float(totalCardsInHand - 1) * cardSpacing
-        let startX = -totalWidth / 2.0
+        let startX = -totalWidth / 2.5
         let cardX = startX + Float(cardIndex) * cardSpacing
         let cardY: Float = 0.002 // Use a small constant Y offset again
         let cardZ: Float = 0.0   // Use a constant Z offset (usually 0)
@@ -641,6 +658,9 @@ class GameRenderer: TabletopGame.RenderDelegate {
         default:
             print("GameRenderer 🪩: spawnPokerChip - no matching chip color?")
         }
+        if let chip = returnedChip{
+            allChips.append(chip)
+        }
         return returnedChip!
     }
     
@@ -684,11 +704,134 @@ class GameRenderer: TabletopGame.RenderDelegate {
         hitButtonEntity?.isEnabled = enabled
         standButtonEntity?.isEnabled = enabled
      }
+    
+    /// Animates chips moving to the winner's location before removing them
+    func removeAllBettingChipsToWiner() {
+        print("GameRenderer: Animating chips to winner's location...")
+        
+        // Get the winner's location from the game logic
+        guard let blackJackGame = blackJackGame else {
+            print("GameRenderer: No BlackJackGame reference, removing chips normally")
+            removeAllBettingChips()
+            return
+        }
+        
+        // Determine if dealer won or if there's a player winner
+        let (isDealerWin, winnerSeatIndex) = determineWinner(from: blackJackGame.blackjackLogic.playerOutcomes)
+        
+        let targetPosition: SIMD3<Float>
+        
+        if isDealerWin {
+            // Dealer wins - chips go to center of bet zone trigger
+            targetPosition = getBetZoneCenterPosition()
+            print("GameRenderer: Dealer wins - chips moving to bet zone center")
+        } else if let seatIndex = winnerSeatIndex {
+            // Player wins - chips go to their chip tray
+            targetPosition = getChipTrayPosition(for: seatIndex)
+            print("GameRenderer: Player at seat \(seatIndex) wins - chips moving to their chip tray")
+        } else {
+            // No clear winner - just remove chips normally
+            print("GameRenderer: No clear winner found, removing chips normally")
+            removeAllBettingChips()
+            return
+        }
+        
+        // Animate each chip to the target position
+        for (index, chip) in activeBettingChips.enumerated() {
+            // Stagger the animations slightly for visual effect
+            let delay = Double(index) * 0.1
+            
+            Task {
+                try? await Task.sleep(for: .seconds(delay))
+                
+                // Animate chip to target position
+                let originalScale = chip.transform.scale
+                chip.move(
+                    to: Transform(
+                        scale: originalScale,        // Keep original size
+                        rotation: chip.transform.rotation,  // Keep original rotation
+                        translation: targetPosition  // Only change position
+                    ),
+                    relativeTo: nil,
+                    duration: 0.8,
+                    timingFunction: .easeInOut
+                )
+                
+                // Remove chip after animation completes
+                try? await Task.sleep(for: .seconds(0.8))
+                chip.removeFromParent()
+            }
+        }
+        
+        // Clear the array after all animations are scheduled
+        activeBettingChips.removeAll()
+    }
+    
+    /// Determines if dealer won or if there's a player winner
+    private func determineWinner(from outcomes: [String: GameOutcome]) -> (isDealerWin: Bool, winnerSeatIndex: Int?) {
+        var dealerWin = true
+        var playerWinnerSeatIndex: Int? = nil
+        
+        for (playerId, outcome) in outcomes {
+            switch outcome {
+            case .playerWin, .dealerBust, .playerBlackjack:
+                // Player won - dealer didn't win
+                dealerWin = false
+                if let seatIndex = blackJackGame?.getSeatIndex(for: playerId) {
+                    playerWinnerSeatIndex = seatIndex
+                    print("GameRenderer: Player at seat \(seatIndex) won with outcome \(outcome)")
+                }
+            case .push:
+                // Push is a tie - could be considered a win for the player
+                dealerWin = false
+                if let seatIndex = blackJackGame?.getSeatIndex(for: playerId) {
+                    playerWinnerSeatIndex = seatIndex
+                    print("GameRenderer: Player at seat \(seatIndex) got push result")
+                }
+            case .playerBust, .dealerWin, .dealerBlackjack:
+                // Player lost - dealer wins
+                continue // Keep dealerWin as true
+            }
+        }
+        
+        return (dealerWin, playerWinnerSeatIndex)
+    }
+    
+    /// Gets the center position of the bet zone trigger
+    private func getBetZoneCenterPosition() -> SIMD3<Float> {
+        if let betZone = betZoneTrigger {
+            let centerPosition = betZone.position(relativeTo: nil)
+            // Add slight vertical offset for visual effect
+            return centerPosition + [0, 0.1, 0]
+        } else {
+            print("GameRenderer: Warning - bet zone trigger not found, using default center position")
+            return [0, 0.5, 0] // Default center position above table
+        }
+    }
+    
+    /// Gets the chip tray position for a specific seat
+    private func getChipTrayPosition(for seatIndex: Int) -> SIMD3<Float> {
+        // For now, use the main chip tray position
+        // You might want to create individual chip trays per seat later
+        if let chipTray = pokerChipTray {
+            let trayPosition = chipTray.position(relativeTo: nil)
+            // Add slight vertical offset for visual effect
+            return trayPosition + [0, 0.1, 0]
+        } else {
+            print("GameRenderer: Warning - chip tray not found, using default position")
+            return [0, 0.5, 0] // Default position above table
+        }
+    }
+    func removeAllCards() {
+        for card in activeCards {
+            card.removeFromParent()
+        }
+        activeCards.removeAll()
+    }
 
     // --- Cleanup ---
     func cleanup() {
         print("GameRenderer: Cleaning up...")
-        removeAllCardEntities()
         lobbySceneEntity?.removeFromParent(); mainGameSceneEntity?.removeFromParent()
         lobbySceneEntity = nil; mainGameSceneEntity = nil
         startButtonEntity = nil; closeButtonEntity = nil

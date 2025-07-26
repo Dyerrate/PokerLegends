@@ -23,7 +23,6 @@ struct GameTopView: View {
     @State private var activityManager: GroupActivityManager?
     @State private var hoverSub: Cancellable?
     @State private var initialOffsetFromChipToTouch: SIMD3<Float>? = nil
-    @State var activeChips: [Entity] = []
 
     // Name matching the entities in your Reality Composer Pro scene
     let startButtonName = "startBJButton"
@@ -44,9 +43,9 @@ struct GameTopView: View {
                          let a = event.entityA
                          let b = event.entityB
 
-                         print("🧩 Collision began:")
-                         print("- Entity A: \(a.name), components: \(a.components)")
-                         print("- Entity B: \(b.name), components: \(b.components)")
+                     //    print("🧩 Collision began:")
+                     //    print("- Entity A: \(a.name), components: \(a.components)")
+                       //  print("- Entity B: \(b.name), components: \(b.components)")
 
                          // Check for bet zone trigger
                          let names = [a.name, b.name]
@@ -65,6 +64,7 @@ struct GameTopView: View {
                            // Mark it as counted and update the component
                         chipData.hasBeenCounted = true
                         chip.components.set(chipData)
+                        game?.renderer.updateChips(addedChip: chip)
                      }
 
                 } update: { content in
@@ -172,6 +172,7 @@ struct GameTopView: View {
                     GameToolBar(game: loadedGame)
                 }
                 .tabletopGame(loadedGame.tabletopGame, parent: loadedGame.renderer.root)
+               
             } else {
                 // Show a loading indicator while the game is being set up
                 ProgressView("Loading Game...")
@@ -197,19 +198,13 @@ struct GameTopView: View {
     private func spawnChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) async {
         print("GameTopView 🔭: starting the spawnChip task")
         var newChip = game?.createPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
-        self.activeChips.append(newChip!)
-        print("The new added chips are: \(self.activeChips)")
-        self.activeChips.removeAll()
         
     }
     
-    func removeAllDaChips() {
-        print("GameTopView 🔭: removing all chips")
-        activeChips.removeAll()
-    }
     
     private func handleReadyCheck() {
         game?.handleReadyPlayers()
+        game?.renderer.removeNoneBettingChips()
     }
     
     private func handleHitButton() {
