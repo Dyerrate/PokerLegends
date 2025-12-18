@@ -4,7 +4,7 @@
       [
         "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
         "Root",
-        "startBJButton"
+        "closeGameButton"
       ],
       {
         "isExpanded" : true,
@@ -21,7 +21,7 @@
       [
         "13A5B426-867E-4C92-A6D9-FC4FCD8A5B08",
         "Root",
-        "closeGameButton"
+        "startBJButton"
       ],
       {
         "isExpanded" : true,
@@ -69,8 +69,7 @@
     "objectMetadataList" : [
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
-        "Root",
-        "cardSleeve"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -78,7 +77,8 @@
       },
       [
         "A3220354-F67B-493F-AC76-5F9C269B526D",
-        "Root"
+        "Root",
+        "cardSleeve"
       ],
       {
         "isExpanded" : true,
@@ -103,8 +103,44 @@
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root",
-        "_5_heart",
-        "Geom"
+        "cardTemplate"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "Group"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "trayInitalState"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "Material"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "D869C0EB-997D-4441-A807-1A1FC77A99D6",
+        "Root",
+        "Green_100_final",
+        "Materials"
       ],
       {
         "isExpanded" : true,
@@ -123,9 +159,7 @@
       },
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root",
-        "Deal",
-        "Track"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -134,7 +168,8 @@
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root",
-        "betZoneTrigger"
+        "_5_heart",
+        "Geom"
       ],
       {
         "isExpanded" : true,
@@ -151,7 +186,8 @@
       },
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
-        "Root"
+        "Root",
+        "Green_100_final"
       ],
       {
         "isExpanded" : true,
@@ -160,7 +196,8 @@
       [
         "D869C0EB-997D-4441-A807-1A1FC77A99D6",
         "Root",
-        "Group"
+        "Deal",
+        "Track"
       ],
       {
         "isExpanded" : true,

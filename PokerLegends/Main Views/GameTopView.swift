@@ -23,10 +23,12 @@ struct GameTopView: View {
     @State private var activityManager: GroupActivityManager?
     @State private var hoverSub: Cancellable?
     @State private var initialOffsetFromChipToTouch: SIMD3<Float>? = nil
+    @EnvironmentObject var session: GameSession
+
 
     // Name matching the entities in your Reality Composer Pro scene
-    let startButtonName = "startBJButton"
-    let closeButtonName = "closeGameButton" // Added for the close button
+    let startButtonName = "White_Play_Final"
+    let closeButtonName = "Red_Quit_Final" // Added for the close button
 
     //INFO: This is just the current identifier that will be passed to this view when the users selects a game
     var selectedGame: String
@@ -43,11 +45,6 @@ struct GameTopView: View {
                          let a = event.entityA
                          let b = event.entityB
 
-                     //    print("🧩 Collision began:")
-                     //    print("- Entity A: \(a.name), components: \(a.components)")
-                       //  print("- Entity B: \(b.name), components: \(b.components)")
-
-                         // Check for bet zone trigger
                          let names = [a.name, b.name]
                          guard names.contains("betZoneTrigger") else { return }
 
@@ -59,6 +56,9 @@ struct GameTopView: View {
                         guard chipData.hasBeenCounted == false else { return }
                            // Process the chip
                         print("💰 Chip: \(chip.name), +\(chipData.chipValue)")
+                        //function handling
+                        makeChipNonInteractive(chip)
+                        game?.renderer.showMoneyPopup(amount: chipData.chipValue)
                         handlePlayerBet(chipValue: chipData.chipValue)
                            //currentPot += chipData.value
                            // Mark it as counted and update the component
@@ -87,7 +87,7 @@ struct GameTopView: View {
                         handleCloseButtonTap()
                     }
                     
-                    else if value.entity.name == "bettingReadyCheck" {
+                    else if value.entity.name == "Green_Ready_Check" {
                         handleReadyCheck()
                     }
                     
@@ -97,17 +97,20 @@ struct GameTopView: View {
                     else if value.entity.name == "standButton" {
                         handleStandButton()
                     }
-                    else if value.entity.name == "greenChipStack_Element" {
+                    else if value.entity.name == "White_doubledown_Final" {
+                        handleDoubleDown()
+                    }
+                    else if value.entity.name == "Green_Stack_Final" {
                         Task {
                             await spawnChip(at: value.location3D, relativeTo: value.entity, tappedChipColor: "green")
                         }
                     }
-                    else if value.entity.name == "redChipStack_Element" {
+                    else if value.entity.name == "Red_Stack_Final" {
                         Task {
                             await spawnChip(at: value.location3D, relativeTo: value.entity, tappedChipColor: "red")
                         }
                     }
-                    else if value.entity.name == "blueChipStack_Element" {
+                    else if value.entity.name == "Blue_Stack_Final1" {
                         Task {
                         
                             await spawnChip(at: value.location3D, relativeTo: value.entity, tappedChipColor: "blue")
@@ -181,7 +184,7 @@ struct GameTopView: View {
         .task {
             if game == nil { // Only initialize if not already done
                  print("GameTopView: Task started. Initializing BlackJackGame...")
-                 let initializedGame = await BlackJackGame()
+                let initializedGame = await BlackJackGame(numberOfDecks: session.settings.numberOfDecks)
                  self.game = initializedGame
                  self.activityManager = GroupActivityManager(tabletopGame: initializedGame.tabletopGame)
                  print("GameTopView: BlackJackGame and ActivityManager initialized.")
@@ -198,13 +201,31 @@ struct GameTopView: View {
     private func spawnChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) async {
         print("GameTopView 🔭: starting the spawnChip task")
         var newChip = game?.createPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
+    }
+    
+    private func makeChipNonInteractive(_ chip: Entity) {
+        chip.components.remove(InputTargetComponent.self)
         
+        if var physicsBody = chip.components[PhysicsBodyComponent.self] {
+            physicsBody.mode = .static
+            chip.components.set(physicsBody)
+        }
+        print("🔒 Chip \(chip.name) is now non-interactive")
     }
     
     
     private func handleReadyCheck() {
         game?.handleReadyPlayers()
         game?.renderer.removeNoneBettingChips()
+    }
+    private func handleDoubleDown() {
+        game?.playerDoubleDown()
+        print("GameTopView: Double down")
+    }
+    
+    private func handleSplitButton() {
+        game?.playerSplitHand()
+        print("GameTopView: Split Hand")
     }
     
     private func handleHitButton() {

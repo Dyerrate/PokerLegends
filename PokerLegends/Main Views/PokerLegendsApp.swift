@@ -11,11 +11,12 @@ import SwiftUI
 @main
 struct PokerLegendsApp: App {
     var userManager = UserManager()
-
+    @StateObject private var session = GameSession()
     var body: some Scene {
         WindowGroup(id: "MainView") {
             MainView()
                 .environmentObject(userManager)
+                .environmentObject(session)
                 .frame (minWidth: 1200, maxWidth: 1280, minHeight: 650, maxHeight: 900)
 
         }
@@ -28,6 +29,8 @@ struct PokerLegendsApp: App {
         
         ImmersiveSpace(id: "GameView") {
             GameTopView(selectedGame: "blackJack")
+                .environmentObject(session)
+                .environmentObject(userManager)
         }
     
     }

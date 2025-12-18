@@ -41,6 +41,17 @@ struct Hand: Identifiable, Codable {
     var isBusted: Bool {
         return score > 21
     }
+    
+    var isSplitable: Bool {
+        // A hand is splittable if it has at least two cards and the last two have the same rank
+        guard cards.count >= 2 else { return false }
+        let lastTwo = cards.suffix(2)
+        // Convert suffix to array for indexed access
+        let first = lastTwo[lastTwo.startIndex]
+        let second = lastTwo[lastTwo.index(after: lastTwo.startIndex)]
+        print("HandModel🪩: Checking if \(first) and \(second) are the same rank")
+        return first.rank == second.rank
+    }
 
     // Checks if the hand is a Blackjack (Ace + 10-value card on the first two cards).
     var isBlackjack: Bool {
@@ -63,3 +74,4 @@ struct Hand: Identifiable, Codable {
         return "\(cardStrings) (\(score))"
     }
 }
+

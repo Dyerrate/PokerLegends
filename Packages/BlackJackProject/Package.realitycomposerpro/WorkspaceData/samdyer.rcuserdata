@@ -1,0 +1,86 @@
+{
+  "advancedEditorSelectedIdentifier" : "ProjectBrowser",
+  "openSceneRelativePaths" : [
+    "Scene.usda",
+    "bjGameScene.usda"
+  ],
+  "recentIdentifiers" : {
+
+  },
+  "sceneCameraHistory" : {
+    "88D31EFF-44A1-4A98-903E-11DB282EB71F" : [
+      {
+        "date" : 787083012.979509,
+        "title" : "Untitled",
+        "transform" : [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.7071069,
+          -0.70710677,
+          0,
+          0,
+          0.70710677,
+          0.7071069,
+          0,
+          0,
+          2.3849556,
+          2.384956,
+          1
+        ]
+      }
+    ],
+    "D869C0EB-997D-4441-A807-1A1FC77A99D6" : [
+      {
+        "date" : 787083778.347485,
+        "title" : "Untitled",
+        "transform" : [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.7071069,
+          -0.70710677,
+          0,
+          0,
+          0.70710677,
+          0.7071069,
+          0,
+          0.12014439,
+          1.4677428,
+          -0.5705719,
+          1
+        ]
+      },
+      {
+        "date" : 787083771.06402,
+        "title" : "Untitled",
+        "transform" : [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.7071069,
+          -0.70710677,
+          0,
+          0,
+          0.70710677,
+          0.7071069,
+          0,
+          -0.04932966,
+          1.3566741,
+          -0.45950294,
+          1
+        ]
+      }
+    ]
+  },
+  "sceneViewportBackgroundColors" : {
+
+  },
+  "selectedSceneRelativePath" : "bjGameScene.usda"
+}

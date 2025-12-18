@@ -19,6 +19,8 @@
 		5868EB252CBB24DB004D8B7F /* BlackJackProject in Frameworks */ = {isa = PBXBuildFile; productRef = 5868EB242CBB24DB004D8B7F /* BlackJackProject */; };
 		5868EB272CBC4306004D8B7F /* GameEquipment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5868EB262CBC42FB004D8B7F /* GameEquipment.swift */; };
 		5868EB2A2CBC72A5004D8B7F /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5868EB292CBC72A3004D8B7F /* Utils.swift */; };
+		586ECC832E3669F8005FD6E1 /* RoundOutcomeDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 586ECC822E3669F5005FD6E1 /* RoundOutcomeDisplay.swift */; };
+		5875FA482EB7A842004A4AB3 /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5875FA472EB7A836004A4AB3 /* GameSession.swift */; };
 		5882D08A2C508F5400A39613 /* ShopPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D0892C508F5400A39613 /* ShopPage.swift */; };
 		5882D08D2C508FE100A39613 /* SelectGameMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D08C2C508FE100A39613 /* SelectGameMode.swift */; };
 		5882D08F2C51E44300A39613 /* MoreInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5882D08E2C51E44300A39613 /* MoreInfoView.swift */; };
@@ -50,6 +52,8 @@
 		58BA29742CB2E6E2007AE3DE /* GameRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BA29732CB2E6E0007AE3DE /* GameRenderer.swift */; };
 		58BA29762CB2F0AB007AE3DE /* GameObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BA29752CB2F0A8007AE3DE /* GameObserver.swift */; };
 		58C0F9762C742D6A00B4C80E /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C0F9752C742D6A00B4C80E /* MainView.swift */; };
+		58EE38DA2EAD1783002CEEC8 /* GameSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58EE38D92EAD177E002CEEC8 /* GameSettings.swift */; };
+		58EE38DC2EAD190E002CEEC8 /* GameConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58EE38DB2EAD1902002CEEC8 /* GameConfigurationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +70,8 @@
 		5868EB262CBC42FB004D8B7F /* GameEquipment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEquipment.swift; sourceTree = "<group>"; };
 		5868EB292CBC72A3004D8B7F /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		5868EB2C2CBC76A1004D8B7F /* RealityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealityKit.framework; path = System/Library/Frameworks/RealityKit.framework; sourceTree = SDKROOT; };
+		586ECC822E3669F5005FD6E1 /* RoundOutcomeDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundOutcomeDisplay.swift; sourceTree = "<group>"; };
+		5875FA472EB7A836004A4AB3 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
 		5882D0892C508F5400A39613 /* ShopPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopPage.swift; sourceTree = "<group>"; };
 		5882D08C2C508FE100A39613 /* SelectGameMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectGameMode.swift; sourceTree = "<group>"; };
 		5882D08E2C51E44300A39613 /* MoreInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreInfoView.swift; sourceTree = "<group>"; };
@@ -99,6 +105,8 @@
 		58BA29732CB2E6E0007AE3DE /* GameRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRenderer.swift; sourceTree = "<group>"; };
 		58BA29752CB2F0A8007AE3DE /* GameObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameObserver.swift; sourceTree = "<group>"; };
 		58C0F9752C742D6A00B4C80E /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		58EE38D92EAD177E002CEEC8 /* GameSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSettings.swift; sourceTree = "<group>"; };
+		58EE38DB2EAD1902002CEEC8 /* GameConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfigurationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,9 +129,17 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		5875FA492EF38FD9004A4AB3 /* New Group */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "New Group";
+			sourceTree = "<group>";
+		};
 		5882D08B2C508F5F00A39613 /* TabViews */ = {
 			isa = PBXGroup;
 			children = (
+				58EE38DB2EAD1902002CEEC8 /* GameConfigurationView.swift */,
 				5882D0892C508F5400A39613 /* ShopPage.swift */,
 				5882D08C2C508FE100A39613 /* SelectGameMode.swift */,
 				5882D08E2C51E44300A39613 /* MoreInfoView.swift */,
@@ -182,6 +198,7 @@
 		589AE34E2C67D82500705B0E /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				5875FA492EF38FD9004A4AB3 /* New Group */,
 				5899B48A2CA89BD3002FE551 /* Table Controler */,
 				589AE34A2C67C36500705B0E /* UserManager.swift */,
 				5847DBB52D8254E30008CD6C /* LogicController.swift */,
@@ -244,6 +261,8 @@
 		58A32D3D2DDA811400F42B1C /* Game Models */ = {
 			isa = PBXGroup;
 			children = (
+				5875FA472EB7A836004A4AB3 /* GameSession.swift */,
+				58EE38D92EAD177E002CEEC8 /* GameSettings.swift */,
 				58A32D3E2DDA812100F42B1C /* PokerChipModel.swift */,
 			);
 			path = "Game Models";
@@ -252,6 +271,7 @@
 		58BA296E2CB1B031007AE3DE /* GameComponents */ = {
 			isa = PBXGroup;
 			children = (
+				586ECC822E3669F5005FD6E1 /* RoundOutcomeDisplay.swift */,
 				58BA296F2CB1B03C007AE3DE /* GameToolBar.swift */,
 			);
 			path = GameComponents;
@@ -358,6 +378,7 @@
 				589AE3492C67C14C00705B0E /* WelcomeDisplay.swift in Sources */,
 				589AE3562C67E50500705B0E /* PageController.swift in Sources */,
 				589AE34D2C67C5DB00705B0E /* SinginButtonView.swift in Sources */,
+				586ECC832E3669F8005FD6E1 /* RoundOutcomeDisplay.swift in Sources */,
 				58BA29702CB1B03F007AE3DE /* GameToolBar.swift in Sources */,
 				58128B1B2C55678100E9AA9B /* PrizeTabView.swift in Sources */,
 				5882D08D2C508FE100A39613 /* SelectGameMode.swift in Sources */,
@@ -372,7 +393,9 @@
 				58128B1D2C56BD9A00E9AA9B /* RewardViewModel.swift in Sources */,
 				5811ECE52D9C895A001D2D00 /* PlayingCard.swift in Sources */,
 				5882D08A2C508F5400A39613 /* ShopPage.swift in Sources */,
+				58EE38DA2EAD1783002CEEC8 /* GameSettings.swift in Sources */,
 				5899B4912CA9AB74002FE551 /* GameInteractions.swift in Sources */,
+				5875FA482EB7A842004A4AB3 /* GameSession.swift in Sources */,
 				5899B48C2CA89C03002FE551 /* GameSetup.swift in Sources */,
 				589F0EB02C31E7C200DDE7E6 /* ContentView.swift in Sources */,
 				589F0EAE2C31E7C200DDE7E6 /* PokerLegendsApp.swift in Sources */,
@@ -382,6 +405,7 @@
 				5811ECE92D9C8A0A001D2D00 /* Hand.swift in Sources */,
 				5868EB272CBC4306004D8B7F /* GameEquipment.swift in Sources */,
 				589AE3582C68087600705B0E /* ProfileView.swift in Sources */,
+				58EE38DC2EAD190E002CEEC8 /* GameConfigurationView.swift in Sources */,
 				58BA296D2CB19F18007AE3DE /* GroupActivity.swift in Sources */,
 				58BA29742CB2E6E2007AE3DE /* GameRenderer.swift in Sources */,
 				58A32D3F2DDA812F00F42B1C /* PokerChipModel.swift in Sources */,

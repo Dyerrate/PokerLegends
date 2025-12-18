@@ -15,7 +15,6 @@ enum BlackjackGameState: Codable, Equatable {
     case dealerTurn     // Dealer is playing their hand
     case roundOver      // Round finished, outcomes determined
     case waitingForPlayers // Waiting for players to join or ready up
-
     // Swift automatically synthesizes Equatable conformance because String is Equatable.
     // No need to write static func ==(...) manually here.
 }
@@ -24,6 +23,8 @@ enum BlackjackGameState: Codable, Equatable {
 enum PlayerAction: Codable {
     case hit
     case stand
+    case doubleDown
+    case splitHand
     // TODO: Add Double Down, Split, Insurance later if desired
 }
 
@@ -122,6 +123,12 @@ class BlackjackLogicController: ObservableObject {
             playerHands[id]?.reset()
             // TODO: Handle betting properly - reset bets here or require new bets
         }
+        
+        activePlayerIds.forEach { id in
+            playerHands[id]?.reset()
+            playerBets[id] = 0 // Reset bets too
+            print("starting new round wipe playerbets")
+        }
 
         // 2. Prepare the deck/shoe if needed
         if shoe.count < (numberOfDecks * 52 / 4) { // Reshuffle if shoe is low (e.g., < 25% left)
@@ -161,10 +168,9 @@ class BlackjackLogicController: ObservableObject {
              print("Bet amount must be positive.")
              return
          }
-         // TODO: Check if player has enough money (requires integrating UserModel)
-         playerBets[playerId] = amount
+         // TODO: PLAYER BET Check if player has enough money (requires integrating UserModel)
+         playerBets[playerId]! += amount
          print("Player \(playerId) bet \(amount).")
-
 
          // TODO: Check if all active players have placed bets to proceed
          // let allBetsPlaced = activePlayerIds.allSatisfy { playerBets[$0] ?? 0 > 0 }
@@ -302,7 +308,16 @@ class BlackjackLogicController: ObservableObject {
                  if dealerHand.cards.count > 1 { dealerHand.cards[1].isFaceUp = true }
                  determineOutcome() // Determine outcome (pushes for player blackjacks if dealer doesn't have one)
             }
+            
         }
+        
+        //MARK: Adding the double down logic
+    }
+    
+    func isSplittableHand(playerId: String) -> Bool {
+        //TODO: Add logic to check if player has enough money to split his hands
+        guard let hand = playerHands[playerId] else { return false }
+        return hand.isSplitable
     }
 
     /// Handles a player's action (Hit or Stand).
@@ -321,6 +336,49 @@ class BlackjackLogicController: ObservableObject {
         }
 
         switch action {
+            
+        case .splitHand:
+            print("this splitting hand")
+            
+            
+        case .doubleDown:
+            print("Player \(playerId) double downs.")
+            if let card = dealCard() {
+                var dealtCard = card
+                dealtCard.isFaceUp = true // Make sure dealt card is face up
+                hand.addCard(dealtCard) // Add to the temporary hand copy
+
+                // --- IMPORTANT: Update the published property ---
+                playerHands[playerId] = hand
+                playerBets[playerId]! += playerBets[playerId]!
+                // ---
+
+                print("Player \(playerId) Hand: \(hand.description)") // Log the updated hand
+
+                // --- MODIFIED: Check for 21 or Bust ---
+                if hand.score == 21 {
+                    print("Player \(playerId) has 21!")
+                    // Turn automatically ends when player hits 21
+                    advanceToNextPlayer()
+                } else if hand.isBusted {
+                    print("Player \(playerId) busted!")
+                    // Update outcomes directly on the published property
+                    playerOutcomes[playerId] = .playerBust
+                    advanceToNextPlayer() // Check next player or dealer
+                } else {
+                    // Player score is < 21, can hit again
+                    print("Player \(playerId) can't act again on this hand of double down.")
+                    advanceToNextPlayer()
+                    // No state change needed here, just wait for next action or timeout
+                }
+                // --- END MODIFICATION ---
+            } else {
+                 print("Error: Deck is empty during player hit.")
+                 // Handle error state appropriately (e.g., end round?)
+                 // For now, just advance turn as player cannot hit
+                 advanceToNextPlayer()
+            }
+            
         case .hit:
             print("Player \(playerId) hits.")
             if let card = dealCard() {
@@ -380,8 +438,6 @@ class BlackjackLogicController: ObservableObject {
                 // Otherwise, player is already done (Bust/BJ), increment and check next
                 currentPlayerIndex += 1
             }
-
-
            // --- MODIFIED LOGIC ---
            // If loop completes, no more players left to act. Check if dealer needs to play.
            print("All players finished acting.")

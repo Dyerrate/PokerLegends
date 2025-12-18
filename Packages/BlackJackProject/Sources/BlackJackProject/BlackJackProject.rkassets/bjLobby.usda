@@ -12,7 +12,7 @@ def Xform "Root"
 {
     reorder nameChildren = ["blackJackTable", "startBJButton", "closeGameButton"]
     def Cylinder "startBJButton" (
-        active = true
+        active = false
         prepend apiSchemas = ["MaterialBindingAPI"]
         customData = {
             float3 rotationEulerHint = (1.5213269, 0.10079741, 0.0045843963)
@@ -72,7 +72,7 @@ def Xform "Root"
     }
 
     def Cylinder "closeGameButton" (
-        active = true
+        active = false
         prepend apiSchemas = ["MaterialBindingAPI"]
         customData = {
             float3 rotationEulerHint = (1.5196729, -0.27376577, 0.023399385)
@@ -129,6 +129,103 @@ def Xform "Root"
                 def RealityKitStruct "pose"
                 {
                 }
+            }
+        }
+    }
+
+    def "White_Play_Final" (
+        active = true
+        customData = {
+            float3 rotationEulerHint = (1.5707965, 0.34655926, -1.5843078e-8)
+        }
+        prepend references = @White_Play_Final.usdz@
+    )
+    {
+        quatf xformOp:orient = (0.6965176, 0.69651765, 0.12191495, -0.12191497)
+        float3 xformOp:scale = (5.8716354, 5.8716345, 5.8716345)
+        float3 xformOp:translate = (-0.21719974, 0.9775268, -0.99126947)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def RealityKitComponent "InputTarget"
+        {
+            uniform token info:id = "RealityKit.InputTarget"
+        }
+
+        def RealityKitComponent "Collider"
+        {
+            uint group = 1
+            uniform token info:id = "RealityKit.Collider"
+            uint mask = 4294967295
+            token type = "Trigger"
+
+            def RealityKitStruct "Shape"
+            {
+                float3 extent = (0.043134615, 0.0063377805, 0.043607146)
+                token shapeType = "Box"
+
+                def RealityKitStruct "pose"
+                {
+                    float3 position = (-0.000006360002, 0.00012571341, -2.7939677e-9)
+                }
+            }
+        }
+    }
+
+    def "Red_Quit_Final" (
+        active = true
+        customData = {
+            float3 rotationEulerHint = (1.5822308, -0.54214144, -3.131206e-7)
+        }
+        prepend references = @Red_Quit_Final.usdz@
+    )
+    {
+        quatf xformOp:orient = (0.67738044, 0.6851705, -0.1882517, 0.19041646)
+        float3 xformOp:scale = (5.872, 5.872, 5.872001)
+        float3 xformOp:translate = (0.26538658, 0.977519, -1.0267129)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def RealityKitComponent "Collider"
+        {
+            uint group = 1
+            uniform token info:id = "RealityKit.Collider"
+            uint mask = 4294967295
+            token type = "Trigger"
+
+            def RealityKitStruct "Shape"
+            {
+                float3 extent = (0.043134615, 0.0061645396, 0.043540068)
+                token shapeType = "Box"
+
+                def RealityKitStruct "pose"
+                {
+                    float3 position = (0.000025684945, -0.00005172391, -2.7939677e-9)
+                }
+            }
+        }
+
+        def RealityKitComponent "InputTarget"
+        {
+            uniform token info:id = "RealityKit.InputTarget"
+        }
+    }
+
+    def Xform "SpotLight" (
+        customData = {
+            float3 rotationEulerHint = (-0.39686954, 0, 0)
+        }
+    )
+    {
+        quatf xformOp:orient = (0.98037636, -0.19713506, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        float3 xformOp:translate = (0, 1.2849675, -0.2664373)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def RealityKitComponent "SpotLight"
+        {
+            token info:id = "RealityKit.SpotLight"
+
+            def RealityKitStruct "Shadow"
+            {
             }
         }
     }

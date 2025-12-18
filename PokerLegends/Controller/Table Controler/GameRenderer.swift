@@ -17,7 +17,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
 
     // --- Properties ---
     let root: Entity
-    let rootOffset: Vector3D = .init(x: 0, y: -0.7, z: 0)
+    let rootOffset: Vector3D = .init(x: 0, y: 0, z: 0)
     let typeOfGame: String
 
     weak var blackJackGame: BlackJackGame?
@@ -44,6 +44,8 @@ class GameRenderer: TabletopGame.RenderDelegate {
     private var standButtonEntity: Entity?
     private var betttingReadyCheckButton: Entity?
     private var betZoneTrigger: Entity?
+    private var doubleDownButtonEntity: Entity?
+    private var splitButtonEntity: Entity?
     
     //Poker Chip Trays
     private var pokerChipTray: Entity?
@@ -57,9 +59,11 @@ class GameRenderer: TabletopGame.RenderDelegate {
     var activeCards: [Entity] = []
     var allChips: [Entity] = []
     var activeBettingChips: [Entity] = []
+    private var activeMoneyPopups: [Entity] = []
+
     
-
-
+    //UI COMPONENTS
+    private var outcomeDisplayEntity: Entity?
 
     // --- Card Rendering ---
     var cardEntities: [EquipmentIdentifier: Entity] = [:] // Card Equipment ID -> Instantiated Card Entity
@@ -87,15 +91,12 @@ class GameRenderer: TabletopGame.RenderDelegate {
         self.lobbySceneEntity = await loadSceneAsync(named: "bjLobby")
         if let lobby = lobbySceneEntity {
             root.addChild(lobby); lobby.isEnabled = false
-            self.startButtonEntity = lobby.findEntity(named: "startBJButton")
-            self.closeButtonEntity = lobby.findEntity(named: "closeGameButton")
-            // --- Added Print for Lobby Buttons ---
-//            print("GameRenderer: Found startBJButton? \(self.startButtonEntity != nil)")
-//            print("GameRenderer: Found closeGameButton? \(self.closeButtonEntity != nil)")
-            // ---
-            verifyInteractionComponents(for: startButtonEntity, name: "startBJButton")
-            verifyInteractionComponents(for: closeButtonEntity, name: "closeGameButton")
-            self.startButtonEntity?.isEnabled = false; self.closeButtonEntity?.isEnabled = false
+            self.startButtonEntity = lobby.findEntity(named: "White_Play_Final")
+            self.closeButtonEntity = lobby.findEntity(named: "Red_Quit_Final")
+            verifyInteractionComponents(for: startButtonEntity, name: "White_Play_Final")
+            verifyInteractionComponents(for: closeButtonEntity, name: "Red_Quit_Final")
+            self.startButtonEntity?.isEnabled = false;
+            self.closeButtonEntity?.isEnabled = false
             print("GameRenderer: Lobby scene loaded.")
         } else { print("GameRenderer: ERROR - Failed to load lobby scene 'bjLobby'.") }
         // Load Main Game Scene
@@ -113,12 +114,15 @@ class GameRenderer: TabletopGame.RenderDelegate {
             self.dealerHandAreaMarker = gameScene.findEntity(named: "DealerHandAreaMarker")
             self.cardMainDeck = gameScene.findEntity(named: "cardMainDeck")
             self.cardTemplate = gameScene.findEntity(named: "cardTemplate")
-            self.betttingReadyCheckButton = gameScene.findEntity(named: "bettingReadyCheck")
-            self.pokerChipTray = gameScene.findEntity(named: "trayInitalState")
+            self.betttingReadyCheckButton = gameScene.findEntity(named: "Green_Ready_Check")
+            self.pokerChipTray = gameScene.findEntity(named: "playChipSet_Final")
+            self.doubleDownButtonEntity = gameScene.findEntity(named: "White_doubledown_Final")
+            self.splitButtonEntity = gameScene.findEntity(named: "White_split_Final")
             
-            self.greenParentChip = gameScene.findEntity(named: "greenChip_Element")
-            self.blueParentChip = gameScene.findEntity(named: "blueChip_Element")
-            self.redParentChip = gameScene.findEntity(named: "redChip_Element")
+            
+            self.greenParentChip = gameScene.findEntity(named: "Green_100_final")
+            self.blueParentChip = gameScene.findEntity(named: "Blue_50_final")
+            self.redParentChip = gameScene.findEntity(named: "Red_500_final")
             
             self.betZoneTrigger = gameScene.findEntity(named: "betZoneTrigger")
             
@@ -189,6 +193,8 @@ class GameRenderer: TabletopGame.RenderDelegate {
         print("GameRenderer: Showing Lobby Scene")
         mainGameSceneEntity?.isEnabled = false
         hitButtonEntity?.isEnabled = false
+        splitButtonEntity?.isEnabled = false
+        doubleDownButtonEntity?.isEnabled = false
         standButtonEntity?.isEnabled = false
         lobbySceneEntity?.isEnabled = true
         startButtonEntity?.isEnabled = true
@@ -205,29 +211,11 @@ class GameRenderer: TabletopGame.RenderDelegate {
         //addPlayerActionButtons()
      }
     
-    func clearCheckRound() {
-        
-    }
-    
     func updateChips(addedChip: Entity) {
         if (allChips.contains(addedChip)) {
             allChips.removeAll { $0.name == addedChip.name }
             activeBettingChips.append(addedChip)
         }
-    }
-    
-    func removeAllBettingChips() {
-        for chip in activeBettingChips {
-            chip.removeFromParent()
-        }
-        allChips.removeAll()
-    }
-    
-    func removeNoneBettingChips() {
-        for chip in allChips {
-            chip.removeFromParent()
-        }
-        allChips.removeAll()
     }
 
     // --- Card Model Loading ---
@@ -553,6 +541,8 @@ class GameRenderer: TabletopGame.RenderDelegate {
        
     }
     
+    //Showing money sign on Chips
+    
     func revealDealerHoleCard() {
         print("revealDealerHoleCard")
         print("🗂  cardEntities now contains:")
@@ -612,8 +602,8 @@ class GameRenderer: TabletopGame.RenderDelegate {
         // Measure bounds of full visual group
         let bounds = container.visualBounds(relativeTo: nil)
         let currentSize = bounds.extents * 0.5
-        let scaleRatioX = (targetSize.x / currentSize.x) * 3
-        let scaleRatioZ = (targetSize.z / currentSize.z) * 0.5
+        let scaleRatioX = (targetSize.x / currentSize.x) * 4
+        let scaleRatioZ = (targetSize.z / currentSize.z) * 0.8
         let uniformScale = min(scaleRatioX, scaleRatioZ)
 
         let scaleFactor = uniformScale
@@ -701,9 +691,30 @@ class GameRenderer: TabletopGame.RenderDelegate {
     // --- Button Enable/Disable ---
     func setActionButtonsEnabled(_ enabled: Bool) {
         print("GameRenderer: Setting Hit/Stand buttons enabled: \(enabled)")
+        
+        doubleDownButtonEntity?.isEnabled = enabled
         hitButtonEntity?.isEnabled = enabled
         standButtonEntity?.isEnabled = enabled
+        //Add doulbe down button
      }
+    func setSplittableButton(_ enabled: Bool) {
+        print("GameRenderer: Setting Split button enabled: \(enabled)")
+        splitButtonEntity?.isEnabled = enabled
+    }
+    
+    func showBettingReadyButton() {
+        print("GameRenderer: Showing betting ready button")
+        betttingReadyCheckButton?.isEnabled = true
+        // If you want to make it visible after being hidden:
+        // betttingReadyCheckButton?.isEnabled = true
+    }
+
+    func hideBettingReadyButton() {
+        print("GameRenderer: Hiding betting ready button")
+        betttingReadyCheckButton?.isEnabled = false
+        // If you want to make it completely invisible:
+        // betttingReadyCheckButton?.isEnabled = false
+    }
     
     /// Animates chips moving to the winner's location before removing them
     func removeAllBettingChipsToWiner() {
@@ -822,11 +833,333 @@ class GameRenderer: TabletopGame.RenderDelegate {
             return [0, 0.5, 0] // Default position above table
         }
     }
+    
+    //Handle UI SECTIONS
+    func showRoundOutcome(outcome: GameOutcome, winAmount: Double) {
+        print("GameRenderer: Showing round outcome - \(outcome)")
+        
+        // Remove any existing outcome display
+        removeOutcomeDisplay()
+        
+        // Create the 3D outcome display
+        Task { @MainActor in
+            let outcomeEntity = await createOutcomeDisplayEntity(
+                outcome: outcome,
+                winAmount: winAmount
+            )
+            
+            // Position it at the betting ready check button location
+            if let bettingButtonPosition = betttingReadyCheckButton?.position(relativeTo: mainGameSceneEntity) {
+                outcomeEntity.position = bettingButtonPosition + [0, 0.3, 0] // Slightly above button position
+                print("GameRenderer: Positioning outcome display at betting button location: \(bettingButtonPosition)")
+            } else {
+                // Fallback position if button not found
+                outcomeEntity.position = [0, 0.8, 0.5]
+                print("GameRenderer: Using fallback position for outcome display")
+            }
+            
+            // Add to scene
+            mainGameSceneEntity?.addChild(outcomeEntity)
+            outcomeDisplayEntity = outcomeEntity
+            // Animate it in
+            animateOutcomeDisplayIn(outcomeEntity)
+            // Auto-hide after 4 seconds
+            Task {
+                try? await Task.sleep(for: .seconds(4))
+                removeOutcomeDisplay()
+            }
+        }
+    }
+    
+   
+    private func createOutcomeDisplayEntity(outcome: GameOutcome, winAmount: Double) async -> Entity {
+        let entity = Entity()
+        entity.name = "RoundOutcomeDisplay"
+        
+        // Create a vertical panel (standing upright like a billboard)
+        let mesh = MeshResource.generatePlane(width: 0.8, depth: 0.5, cornerRadius: 0.05)
+        
+        // Create material based on outcome with some transparency
+        let color: UIColor = {
+            switch outcome {
+            case .playerWin, .playerBlackjack, .dealerBust:
+                return .systemGreen
+            case .dealerWin, .dealerBlackjack, .playerBust:
+                return .systemRed
+            case .push:
+                return .systemOrange
+            }
+        }()
+        
+        var material = SimpleMaterial(color: color.withAlphaComponent(0.9), isMetallic: false)
+        material.roughness = 0.2
+        
+        let panelEntity = ModelEntity(mesh: mesh, materials: [material])
+        
+        // Rotate the panel to stand vertically (90 degrees around X-axis)
+        panelEntity.transform.rotation = simd_quatf(angle: .pi/2, axis: [1, 0, 0])
+        
+        entity.addChild(panelEntity)
+        
+        // Add main outcome text
+        let outcomeText = getOutcomeText(for: outcome)
+        let textMesh = MeshResource.generateText(
+            outcomeText,
+            extrusionDepth: 0.01,
+            font: .boldSystemFont(ofSize: 0.07)
+        )
+        
+        let textMaterial = SimpleMaterial(color: .white, isMetallic: false)
+        let textEntity = ModelEntity(mesh: textMesh, materials: [textMaterial])
+        
+        // Position text in center-top of panel
+        let textBounds = textEntity.visualBounds(relativeTo: nil)
+        textEntity.position = [
+            -textBounds.center.x,  // Center horizontally
+            0.05,                  // Slightly above center
+            0.02                   // Slightly in front of panel
+        ]
+        
+        // DON'T rotate the text - let it face forward toward the user
+        // Remove this line: textEntity.transform.rotation = simd_quatf(angle: .pi/2, axis: [1, 0, 0])
+        
+        entity.addChild(textEntity)
+        
+        // Add win amount text (if applicable)
+        if winAmount > 0 {
+            let winText = "+$\(Int(winAmount))"
+            let winMesh = MeshResource.generateText(
+                winText,
+                extrusionDepth: 0.008,
+                font: .boldSystemFont(ofSize: 0.06)
+            )
+            
+            let winMaterial = SimpleMaterial(color: .yellow, isMetallic: false)
+            let winEntity = ModelEntity(mesh: winMesh, materials: [winMaterial])
+            let winBounds = winEntity.visualBounds(relativeTo: nil)
+            winEntity.position = [
+                -winBounds.center.x,    // Center horizontally
+                -0.08,                  // Below the main text
+                0.02                    // Slightly in front of panel
+            ]
+            
+            // DON'T rotate the win text either - let it face forward toward the user
+            // Remove this line: winEntity.transform.rotation = simd_quatf(angle: .pi/2, axis: [1, 0, 0])
+            
+            entity.addChild(winEntity)
+        }
+        
+        // Add a subtle border/outline effect
+        let borderMesh = MeshResource.generatePlane(width: 0.82, depth: 0.52, cornerRadius: 0.05)
+        var borderMaterial = SimpleMaterial(color: .white.withAlphaComponent(0.3), isMetallic: false)
+        borderMaterial.roughness = 0.8
+        
+        let borderEntity = ModelEntity(mesh: borderMesh, materials: [borderMaterial])
+        borderEntity.transform.rotation = simd_quatf(angle: .pi/2, axis: [1, 0, 0])
+        borderEntity.position = [0, 0, -0.005] // Slightly behind the main panel
+        
+        entity.addChild(borderEntity)
+        
+        return entity
+    }
+
+    
+    private func getOutcomeText(for outcome: GameOutcome) -> String {
+        switch outcome {
+        case .playerWin:
+            return "YOU WIN!"
+        case .playerBlackjack:
+            return "PLAYER BLACKJACK!"
+        case .dealerBust:
+            return "DEALER BUSTS!"
+        case .dealerWin:
+            return "DEALER WINS"
+        case .dealerBlackjack:
+            return "DEALER BLACKJACK"
+        case .playerBust:
+            return "YOU BUST"
+        case .push:
+            return "PUSH"
+        }
+    }
+    
+    private func animateOutcomeDisplayIn(_ entity: Entity) {
+        // Start small and scale up
+        entity.scale = [0.1, 0.1, 0.1]
+        
+        // Animate scale and slight bounce
+        entity.move(
+            to: Transform(
+                scale: [1.2, 1.2, 1.2],
+                rotation: entity.transform.rotation,
+                translation: entity.transform.translation
+            ),
+            relativeTo: entity.parent,
+            duration: 0.3,
+            timingFunction: .easeOut
+        )
+        
+        // Then scale back to normal size
+        Task {
+            try? await Task.sleep(for: .seconds(0.3))
+            entity.move(
+                to: Transform(
+                    scale: [1.0, 1.0, 1.0],
+                    rotation: entity.transform.rotation,
+                    translation: entity.transform.translation
+                ),
+                relativeTo: entity.parent,
+                duration: 0.2,
+                timingFunction: .easeInOut
+            )
+        }
+    }
+    
+    func showMoneyPopup(amount: Int) {
+        print("GameRenderer: Showing money popup for +$\(amount)")
+        
+        Task { @MainActor in
+            let popupEntity = await createMoneyPopupEntity(amount: amount)
+            
+            // Position it above the betting zone
+            if let bettingZonePosition = betZoneTrigger?.position(relativeTo: mainGameSceneEntity) {
+                // Start position: above the betting zone center
+                popupEntity.position = bettingZonePosition + [0, 0.3, 0]
+                print("GameRenderer: Positioning money popup above betting zone at: \(bettingZonePosition)")
+            } else {
+                // Fallback position
+                popupEntity.position = [0, 0.5, 0]
+                print("GameRenderer: Using fallback position for money popup")
+            }
+            
+            // Add to scene
+            mainGameSceneEntity?.addChild(popupEntity)
+            activeMoneyPopups.append(popupEntity)
+            
+            // Animate the popup
+            animateMoneyPopup(popupEntity)
+            
+            // Remove after animation completes
+            Task {
+                try? await Task.sleep(for: .seconds(1.0)) // Total animation time
+                removeMoneyPopup(popupEntity)
+            }
+        }
+    }
+    
+    private func createMoneyPopupEntity(amount: Int) async -> Entity {
+        let entity = Entity()
+        entity.name = "MoneyPopup_\(UUID().uuidString.prefix(8))"
+        
+        // Create the money text (e.g., "+$50")
+        let moneyText = "+$\(amount)"
+        let textMesh = MeshResource.generateText(
+            moneyText,
+            extrusionDepth: 0.008,
+            font: .boldSystemFont(ofSize: 0.08) // Nice big text for visibility
+        )
+        
+        // Green material for money
+        let textMaterial = SimpleMaterial(color: .systemGreen, isMetallic: false)
+        let textEntity = ModelEntity(mesh: textMesh, materials: [textMaterial])
+        
+        // Center the text
+        let textBounds = textEntity.visualBounds(relativeTo: nil)
+        textEntity.position = [-textBounds.center.x, 0, -textBounds.center.z]
+        
+        entity.addChild(textEntity)
+        
+        // Start invisible for fade-in effect
+        entity.components.set(OpacityComponent(opacity: 0.0))
+        
+        return entity
+    }
+
+    private func animateMoneyPopup(_ entity: Entity) {
+        let startPosition = entity.position
+        let endPosition = startPosition + [0, 0.4, 0] // Rise 0.4 units upward
+        
+        // Phase 1: Fade in and start rising (0.1 seconds)
+        Task { @MainActor in
+            // Quick fade in
+            for i in 0...10 {
+                let opacity = Float(i) / 10.0
+                entity.components.set(OpacityComponent(opacity: opacity))
+                try? await Task.sleep(for: .seconds(0.01)) // 0.1 seconds total
+            }
+            
+            // Phase 2: Rise upward while fully visible (0.4 seconds)
+            entity.move(
+                to: Transform(
+                    scale: entity.transform.scale,
+                    rotation: entity.transform.rotation,
+                    translation: endPosition
+                ),
+                relativeTo: entity.parent,
+                duration: 0.8,
+                timingFunction: .easeOut
+            )
+            
+            // Wait for rise animation to mostly complete
+            try? await Task.sleep(for: .seconds(0.5))
+            
+            // Phase 3: Fade out (0.2 seconds)
+            for i in (0...10).reversed() {
+                let opacity = Float(i) / 10.0
+                entity.components.set(OpacityComponent(opacity: opacity))
+                try? await Task.sleep(for: .seconds(0.02)) // 0.2 seconds total
+            }
+        }
+    }
+    
+    //GameRenderer CLEAN UP
+    
+    private func removeMoneyPopup(_ entity: Entity) {
+        entity.removeFromParent()
+        activeMoneyPopups.removeAll { $0 == entity }
+        print("GameRenderer: Removed money popup: \(entity.name)")
+    }
+    
+    func removeAllMoneyPopups() {
+        for popup in activeMoneyPopups {
+            popup.removeFromParent()
+        }
+        activeMoneyPopups.removeAll()
+        print("GameRenderer: Cleared all money popups")
+    }
+    
+    func removeAllBettingChips() {
+        for chip in activeBettingChips {
+            chip.removeFromParent()
+        }
+        allChips.removeAll()
+    }
+    
+    func removeNoneBettingChips() {
+        for chip in allChips {
+            chip.removeFromParent()
+        }
+        allChips.removeAll()
+    }
+
+
+    func removeOutcomeDisplay() {
+        outcomeDisplayEntity?.removeFromParent()
+        outcomeDisplayEntity = nil
+    }
+    
     func removeAllCards() {
         for card in activeCards {
             card.removeFromParent()
         }
         activeCards.removeAll()
+        dealerHoleCardId = nil
+        dealerHoleCardAlreadyFlipped = false
+        
+        removeOutcomeDisplay()
+        removeAllMoneyPopups()
+
+
     }
 
     // --- Cleanup ---

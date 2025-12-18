@@ -39,15 +39,24 @@ struct HeaderView: View {
                 .frame(maxWidth: .infinity)
             Spacer()
             
-            Image(systemName: "person.circle")
-                .font(.largeTitle)
-                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 30))
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .onTapGesture {
-                    pageController.profilePageToggle()
-                    
-                }
+            Button {
+                pageController.profilePageToggle()
+            } label: {
+                Image(systemName: "person.circle")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(10) // inner padding for touch target
+            }
+            .buttonStyle(.plain) // keep custom look
+            .background(
+                // Use a translucent material for a glass feel on visionOS
+                .thinMaterial
+            )
+            .clipShape(Capsule())
+            .contentShape(Capsule()) // improves hit testing
+            .hoverEffect(.lift) // nice depth on hover in visionOS
+            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 30))
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
 }

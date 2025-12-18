@@ -12,6 +12,8 @@ import SwiftUI
 
 struct GameDisplayCard: View {
     
+    @State private var showingConfiguration = false
+
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     var gameCardInfo: GameCardModel
@@ -36,13 +38,14 @@ struct GameDisplayCard: View {
                 Spacer()
                 Button(action: {
                     
-                    Task {
-                        let resut = await openImmersiveSpace(id: "GameView")
-                        print("Play to start button")
-                        if case .error = resut {
-                            print("There was an error opening up the current")
-                        }
-                    }
+//                    Task {
+//                        let resut = await openImmersiveSpace(id: "GameView")
+//                        print("Play to start button")
+//                        if case .error = resut {
+//                            print("There was an error opening up the current")
+//                        }
+//                    }
+                    showingConfiguration = true
                     
                 }) {
                     Text(gameCardInfo.buttonText)
@@ -57,6 +60,11 @@ struct GameDisplayCard: View {
             }
         }
         .background(.black)
-        
+        .sheet(isPresented: $showingConfiguration) {
+                    GameConfigurationView(
+                        gameTitle: gameCardInfo.title,
+                        gameImage: gameCardInfo.image
+                    )
+                }
     }
 }

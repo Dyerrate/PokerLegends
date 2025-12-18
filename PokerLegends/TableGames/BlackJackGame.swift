@@ -53,9 +53,10 @@ class BlackJackGame: @preconcurrency GameProtocol {
 
 
     // --- Initialization ---
-    init() async {
+    init(numberOfDecks: Int) async {
         print("BlackJackGame: Initializing...")
-        blackjackLogic = BlackjackLogicController(numberOfDecks: 6)
+        print("BlackJackGame: Initializing with \(numberOfDecks) decks...")
+        blackjackLogic = BlackjackLogicController(numberOfDecks: max(1, numberOfDecks))
         renderer = GameRenderer(typeOfGame: "blackJack")
         setup = GameSetup(root: renderer.root, currentGame: "blackJack")
         tabletopGame = TabletopGame(tableSetup: setup.setup)
@@ -168,21 +169,21 @@ class BlackJackGame: @preconcurrency GameProtocol {
                 }
      }
     
-    func playerDidPlaceBet(amount: Int) {
-            guard blackjackLogic.gameState == .betting else {
-                print("BlackJackGame: Cannot place bet. Not in betting state. Current state: \(blackjackLogic.gameState)")
-                return
-            }
-            let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
-            print("BlackJackGame: Player \(localPlayerIdString) attempts to bet \(amount)")
-            blackjackLogic.placeBet(playerId: localPlayerIdString, amount: amount)
-
-            // Visual update for the bet placed would happen here via GameRenderer
-            if let seatIndex = getSeatIndex(for: localPlayerIdString) {
-                 print("BlackJackGame: Bet placed by \(localPlayerIdString). UI should now allow 'Ready'.")
-            }
-            // DO NOT automatically call ready here. Player must explicitly tap the ready button.
-        }
+    //MARK: PLAYER ACTIONS
+    func playerSplitHand() {
+        guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
+              currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+        print("BlackJackGame: Player SplitHand")
+        blackjackLogic.playerAction(playerId: currentPlayerId, action: .splitHand)
+    }
+    
+    func playerDoubleDown() {
+        guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
+              currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+        print("BlackJackGame: Player Double Down")
+        blackjackLogic.playerAction(playerId: currentPlayerId, action: .doubleDown)
+    }
+    
     
     func playerDidHit() { /* ... */
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
@@ -197,6 +198,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
          print("BlackJackGame: Player Stands")
          blackjackLogic.playerAction(playerId: currentPlayerId, action: .stand)
      }
+    
 
      // Remain the same
     private func setupBindings() {
@@ -324,6 +326,12 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     print("  Added visual for NEW Player Card \(cardIndex) (\(card.description))")
                 }
             }
+            if(blackjackLogic.isSplittableHand(playerId: playerId)) {
+                renderer.setSplittableButton(true)
+            } else {
+                renderer.setSplittableButton(false)
+            }
+
         }
 
         // --- Dealer Hand ---
@@ -371,9 +379,12 @@ class BlackJackGame: @preconcurrency GameProtocol {
                 isReadyToStartFromLobby = true // Allow starting from lobby again
             case .betting:
                 renderer.showMainGameScene()
+                renderer.showBettingReadyButton()
+            
                 // TODO: Enable betting controls if implemented
             case .dealing:
                 renderer.showMainGameScene()
+                renderer.hideBettingReadyButton()
                 // Visuals handled by Combine binding + startRound calling setInitialCardVisuals
             case .playerTurn(let playerId):
                 renderer.showMainGameScene()
@@ -384,7 +395,8 @@ class BlackJackGame: @preconcurrency GameProtocol {
                 // Enable Hit/Stand only for the local player whose turn it is
                 if playerId == tabletopGame.localPlayer.id.uuid.uuidString {
                     // Check if player is already busted - don't enable if busted
-                    if blackjackLogic.playerOutcomes[playerId] == nil { // Only enable if no outcome yet
+                    if blackjackLogic.playerOutcomes[playerId] == nil {
+                        // Only enable if no outcome yet
                         renderer.setActionButtonsEnabled(true)
                     }
                 }
@@ -435,7 +447,11 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     
                 }
             }
-
+            if(blackjackLogic.isSplittableHand(playerId: playerId)) {
+                renderer.setSplittableButton(true)
+            } else {
+                renderer.setSplittableButton(false)
+            }
         }
         
         
@@ -460,19 +476,60 @@ class BlackJackGame: @preconcurrency GameProtocol {
 
     }
     
-    private func updateOutcomeVisuals(_ outcomes: [String: GameOutcome]) { /* ... */
+    private func updateOutcomeVisuals(_ outcomes: [String: GameOutcome]) {
         print("BlackJackGame: Updating outcome visuals...")
-        for (playerId, outcome) in outcomes {
-             guard let seatIndex = getSeatIndex(for: playerId) else { continue }
-             let outcomeText: String
-             switch outcome {
-                 case .playerBust: outcomeText = "Bust!"; case .dealerBust: outcomeText = "Win! (Dealer Bust)"; case .playerBlackjack: outcomeText = "Blackjack!"; case .dealerBlackjack: outcomeText = "Lose (Dealer BJ)"; case .playerWin: outcomeText = "Win!"; case .dealerWin: outcomeText = "Lose"; case .push: outcomeText = "Push"
-             }
-             print("Player \(playerId) (Seat \(seatIndex)) Outcome: \(outcomeText)")
+        
+        // Get local player's outcome
+        let localPlayerIdString = tabletopGame.localPlayer.id.uuid.uuidString
+        guard let localPlayerOutcome = outcomes[localPlayerIdString] else {
+            print("BlackJackGame: No outcome found for local player")
+            return
         }
-        if blackjackLogic.dealerHand.isBusted { print("Dealer Outcome: Busts!") }
-        else if blackjackLogic.gameState == .roundOver { print("Dealer Outcome: Stands with \(blackjackLogic.dealerHand.score)") }
-     }
+        
+        // Calculate win amount (you can customize this logic)
+        let betAmount = Double(blackjackLogic.playerBets[localPlayerIdString] ?? 0)
+        print("BlackJackGame: playerAmount is \(betAmount)")
+        let winAmount: Double = {
+            switch localPlayerOutcome {
+            case .playerBlackjack:
+                return betAmount * 2.5 // Blackjack pays 3:2
+            case .playerWin, .dealerBust:
+                return betAmount // Normal win pays 1:1
+            case .push:
+                return betAmount // Get bet back
+            default:
+                return 0.0 // Loss
+            }
+        }()
+        
+        // Show the outcome display (no more scores passed)
+        renderer.showRoundOutcome(
+            outcome: localPlayerOutcome,
+            winAmount: winAmount
+        )
+        
+        // Keep existing logging
+        for (playerId, outcome) in outcomes {
+            guard let seatIndex = getSeatIndex(for: playerId) else { continue }
+            let outcomeText: String
+            switch outcome {
+            case .playerBust: outcomeText = "Bust!"
+            case .dealerBust: outcomeText = "Win! (Dealer Bust)"
+            case .playerBlackjack: outcomeText = "Blackjack!"
+            case .dealerBlackjack: outcomeText = "Lose (Dealer BJ)"
+            case .playerWin: outcomeText = "Win!"
+            case .dealerWin: outcomeText = "Lose"
+            case .push: outcomeText = "Push"
+            }
+            print("Player \(playerId) (Seat \(seatIndex)) Outcome: \(outcomeText)")
+        }
+        
+        if blackjackLogic.dealerHand.isBusted {
+            print("Dealer Outcome: Busts!")
+        } else if blackjackLogic.gameState == .roundOver {
+            print("Dealer Outcome: Stands with \(blackjackLogic.dealerHand.score)")
+        }
+    }
 
 
     // --- Utility ---

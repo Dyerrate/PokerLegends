@@ -10,5 +10,11 @@
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/bjGameScene.usda" : "D869C0EB-997D-4441-A807-1A1FC77A99D6",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/bjLobby.usda" : "85B0E3F5-3411-4ECD-9B9F-C28EE392B141",
     "BlackJackProject\/Sources\/BlackJackProject\/BlackJackProject.rkassets\/board_cavity_assembly.usda" : "B042D3A7-7818-40DD-BB4E-CBE391161342"
+  },
+  "projectID" : -600467675261605417,
+  "uuidToIntID" : {
+    "85B0E3F5-3411-4ECD-9B9F-C28EE392B141" : -4427401456387044514,
+    "88D31EFF-44A1-4A98-903E-11DB282EB71F" : 6367288743265222660,
+    "D869C0EB-997D-4441-A807-1A1FC77A99D6" : 2525585791000828753
   }
 }
