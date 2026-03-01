@@ -84,15 +84,28 @@ class GameRenderer: TabletopGame.RenderDelegate {
         print("GameRenderer initialized. Waiting for setupScenesAndReferences call.")
     }
 
+
+    
     // --- Scene and Entity Setup ---
     func setupScenesAndReferences() async {
         print("GameRenderer: Setting up scenes and references...")
         // Load Lobby Scene
         self.lobbySceneEntity = await loadSceneAsync(named: "bjLobby")
         if let lobby = lobbySceneEntity {
+           
             root.addChild(lobby); lobby.isEnabled = false
             self.startButtonEntity = lobby.findEntity(named: "White_Play_Final")
             self.closeButtonEntity = lobby.findEntity(named: "Red_Quit_Final")
+            if let start = self.startButtonEntity {
+                start.generateCollisionShapes(recursive: true) // important for hit-testing/hover
+                start.components.set(InputTargetComponent())
+                start.components.set(HoverEffectComponent())    // 👈 system hover highlight
+            }
+            if let close = self.closeButtonEntity {
+                close.generateCollisionShapes(recursive: true) // important for hit-testing/hover
+                close.components.set(InputTargetComponent())
+                close.components.set(HoverEffectComponent())    // 👈 system hover highlight
+            }
             verifyInteractionComponents(for: startButtonEntity, name: "White_Play_Final")
             verifyInteractionComponents(for: closeButtonEntity, name: "Red_Quit_Final")
             self.startButtonEntity?.isEnabled = false;
@@ -649,6 +662,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
             print("GameRenderer 🪩: spawnPokerChip - no matching chip color?")
         }
         if let chip = returnedChip{
+            chip.components.set(HoverEffectComponent())
             allChips.append(chip)
         }
         return returnedChip!

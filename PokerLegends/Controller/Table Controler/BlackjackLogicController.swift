@@ -39,6 +39,11 @@ enum GameOutcome: Codable {
     case push // Tie
 }
 
+protocol BlackjackWinningsDelegate: AnyObject {
+    func playerDidWin(amount: Double)
+    func playerDidLose(amount: Double)
+}
+
 // Manages the core logic and state of a Blackjack game.
 // This class is independent of UI and TabletopKit.
 class BlackjackLogicController: ObservableObject {
@@ -58,9 +63,14 @@ class BlackjackLogicController: ObservableObject {
     private var shoe: [PlayingCard] = [] // Cards to be dealt from
     private let numberOfDecks: Int // How many decks to use in the shoe
     private var currentPlayerIndex: Int = 0
+    private var playerOriginalBetAmount: [String: Int] = [:]
+    
+    weak var winningsDelegate: BlackjackWinningsDelegate?
+    
+    
 
     // --- Initialization ---
-    init(numberOfDecks: Int = 6) {
+    init(numberOfDecks: Int) {
         self.numberOfDecks = numberOfDecks
         // Initial state setup can happen here or when players join
     }
@@ -235,6 +245,10 @@ class BlackjackLogicController: ObservableObject {
 
            if allParticipantsReady && !participatingPlayerIds.isEmpty {
                print("All participating players have placed bets and are ready. Proceeding to deal.")
+               for id in activePlayerIds {
+                   playerOriginalBetAmount[id] = playerBets[id]!
+                   print("the original player id is \(id) with their original betting amount of \(playerOriginalBetAmount[id] ?? 0)")
+               }
                gameState = .dealing
                dealInitialHands()
            } else {
@@ -339,6 +353,7 @@ class BlackjackLogicController: ObservableObject {
             
         case .splitHand:
             print("this splitting hand")
+        //TODO: Create logic to create a new hand and assign the hand to the same logged in user.
             
             
         case .doubleDown:
@@ -547,6 +562,12 @@ class BlackjackLogicController: ObservableObject {
         // TODO: Handle payout logic based on outcomes and bets
     }
 
+    func checkIfPlayerHasEnoughMoneyToDoubleDown(currentMoney: Double, playerId: String) -> Bool {
+        
+        return currentMoney >= Double(playerOriginalBetAmount[playerId]!) * 2
+    }
+    
+    
 
     // --- Utility Methods ---
 

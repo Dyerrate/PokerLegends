@@ -10,7 +10,7 @@
 
 def Xform "Root"
 {
-    reorder nameChildren = ["cardTemplate_2", "PlayerHandAreaMarker_4", "PlayerHandAreaMarker_3", "PlayerHandAreaMarker_2", "Red_500_final", "Green_100_final", "Blue_50_final", "Green_Ready_Check", "playChipSet_Final_Old", "playChipSet_Final", "Material", "PlayerHandAreaMarker_1", "PlayerHandAreaMarker_0", "DealerHandAreaMarker", "blackJackTable", "hitButton_1", "standButton_1", "cardTemplate", "trayInitalState", "bettingReadyCheck", "blueChip_Element", "greenChip_Element", "redChip_Element", "betZoneTrigger", "hitButton", "standButton", "SpotLight", "cardSleeve", "cardMainDeck"]
+    reorder nameChildren = ["cardTemplate_2", "PlayerHandAreaMarker_4", "PlayerHandAreaMarker_3", "PlayerHandAreaMarker_2", "Red_500_final", "Green_100_final", "Blue_50_final", "Green_Ready_Check", "playChipSet_Final_Old", "playChipSet_Final", "Material", "PlayerHandAreaMarker_1", "PlayerHandAreaMarker_0", "DealerHandAreaMarker", "blackJackTable", "hitButton_1", "standButton_1", "cardTemplate", "trayInitalState", "bettingReadyCheck", "menuButton", "greenChip_Element", "redChip_Element", "betZoneTrigger", "hitButton", "standButton", "SpotLight", "cardSleeve", "cardMainDeck"]
     def "blackJackTable" (
         active = true
         customData = {
@@ -674,8 +674,7 @@ def Xform "Root"
         }
     }
 
-    def "blueChip_Element" (
-        active = false
+    def "menuButton" (
         customData = {
             float3 rotationEulerHint = (-1.5715635, 0, 0)
         }
@@ -684,7 +683,7 @@ def Xform "Root"
     {
         quatf xformOp:orient = (0.7068355, -0.707378, 0, 0)
         float3 xformOp:scale = (0.041, 0.041, 0.041)
-        float3 xformOp:translate = (-0.007723946, 0.82941145, -0.60730654)
+        float3 xformOp:translate = (-0.007723946, 1.0848, -0.60730654)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def RealityKitComponent "RigidBody"
@@ -1352,7 +1351,7 @@ def Xform "Root"
         customData = {
             float3 rotationEulerHint = (1.5707965, 0.12659886, 7.510687e-9)
         }
-        prepend references = @White_doubledown_Final.usdz@
+        references = @White_doubledown_Final.usdz@
     )
     {
         quatf xformOp:orient = (0.7056906, 0.70569074, 0.04472958, -0.04472958)
@@ -1390,7 +1389,7 @@ def Xform "Root"
         customData = {
             float3 rotationEulerHint = (1.5707964, -0.14402011, 0)
         }
-        prepend references = @White_split_Final.usdz@
+        references = @White_split_Final.usdz@
     )
     {
         quatf xformOp:orient = (0.7052742, 0.7052742, -0.0508748, 0.0508748)

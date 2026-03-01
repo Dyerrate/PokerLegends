@@ -9,7 +9,9 @@ import SwiftUI
 
 struct InGameMenuView: View {
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
+    @EnvironmentObject var session: GameSession
     
     var body: some View {
         NavigationStack {
@@ -51,8 +53,14 @@ struct InGameMenuView: View {
                         title: "Pause Game",
                         systemImage: "pause.circle.fill",
                         action: {
-                            // Pause game logic
-                            dismissWindow()
+                            Task {
+                                // Close the menu window first
+                                dismissWindow()
+                                // Then dismiss the immersive space (pausing the game)
+                                await dismissImmersiveSpace()
+                                // Update session state to paused
+                                session.pause()
+                            }
                         }
                     )
                     
@@ -60,8 +68,9 @@ struct InGameMenuView: View {
                         title: "Save & Exit",
                         systemImage: "square.and.arrow.down.fill",
                         action: {
-                            // Save and exit logic
-                            dismissWindow()
+                            Task {
+                                await handleSaveAndExit()
+                            }
                         }
                     )
                 }
@@ -78,6 +87,60 @@ struct InGameMenuView: View {
                     }
                 }
             }
+            .background(
+                Image("feltAngleUno")
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+            )
+        }
+        
+    }
+    
+    // MARK: - Private Methods
+    
+    private func handleSaveAndExit() async {
+        print("InGameMenuView: Saving game and exiting...")
+        
+        // Save game state
+        await saveGameState()
+        
+        // Close the menu window first
+        dismissWindow()
+        
+        // Then dismiss the immersive space
+        await dismissImmersiveSpace()
+        
+        // Update session phase to finished
+        session.endGame()
+        
+        print("InGameMenuView: Successfully saved and exited game")
+    }
+    
+    private func saveGameState() async {
+        // Implement your save logic here
+        // This could involve:
+        // - Saving current game progress to UserDefaults, Core Data, or CloudKit
+        // - Saving player statistics
+        // - Saving current bet amounts and game state
+        
+        // Example implementation:
+        do {
+            let gameData: [String: Any] = [
+                "timestamp": Date(),
+                "gameInProgress": true,
+                // Add other relevant game state data here
+            ]
+            
+            // Save to UserDefaults (or use your preferred persistence method)
+            UserDefaults.standard.set(gameData, forKey: "savedGameState")
+            
+            // Simulate save delay
+            try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            
+            print("Game state saved successfully")
+        } catch {
+            print("Failed to save game state: \(error)")
         }
     }
 }

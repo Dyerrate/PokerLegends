@@ -11,6 +11,20 @@ import SwiftUI
 struct HeaderView: View {
     let title: String
     @ObservedObject var pageController: PageController
+    @EnvironmentObject var userModel: UserModel
+    
+    private var formattedMoney: String {
+        guard let money = userModel.playerMoney else {
+            return "0"
+        }
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 2
+        
+        return formatter.string(from: NSNumber(value: money)) ?? "0.00"
+    }
     
     var body: some View {
         
@@ -21,7 +35,7 @@ struct HeaderView: View {
                 Image(systemName: "dollarsign")
                     .foregroundStyle(Color.green)
 
-                Text("1,000,000")
+                Text(formattedMoney)
                     .foregroundStyle(Color.yellow)
 
             }

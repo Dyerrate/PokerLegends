@@ -4,15 +4,18 @@
 //
 //  Created by Samuel Dyer on 12/17/25.
 //
-
+/*
 
 import CloudKit
 
 final class CloudKitUser {
+    // Temporary feature flag to disable CloudKit usage until setup is ready
+    static var isEnabled: Bool = false
     private let db = CKContainer.default().privateCloudDatabase
     private let recordType = "User"
 
     func fetchUser(byAppleUserId appleUserId: String) async throws -> CKRecord? {
+        guard Self.isEnabled else { return nil }
         let predicate = NSPredicate(format: "appleUserId == %@", appleUserId)
         let query = CKQuery(recordType: recordType, predicate: predicate)
         let (matched, _) = try await db.records(matching: query, resultsLimit: 1)
@@ -20,6 +23,7 @@ final class CloudKitUser {
     }
 
     func createUser(appleUserId: String, email: String?, fullName: String?) async throws -> CKRecord {
+        guard Self.isEnabled else { throw CKError(.notAuthenticated) }
         let record = CKRecord(recordType: recordType)
         record["appleUserId"] = appleUserId as CKRecordValue
         if let email { record["email"] = email as CKRecordValue }
@@ -31,8 +35,10 @@ final class CloudKitUser {
 
     // TODO: Add logic to handle different User update types
     func updateUser(_ record: CKRecord, changes: (CKRecord) -> Void) async throws -> CKRecord {
+        guard Self.isEnabled else { throw CKError(.notAuthenticated) }
         changes(record)
         record["updatedAt"] = Date() as CKRecordValue
         return try await db.save(record)
     }
 }
+*/

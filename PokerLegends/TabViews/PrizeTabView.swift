@@ -12,6 +12,7 @@ import SwiftUI
 struct PrizeTabView: View {
     
     @ObservedObject var pageController: PageController
+    @EnvironmentObject var userModel: UserModel
 
     var body: some View {
         NavigationStack {
@@ -26,6 +27,7 @@ struct PrizeTabView: View {
             }
             .navigationDestination(isPresented: $pageController.profilePage) {
                 ProfileView(pageController: pageController)
+                    .environmentObject(userModel)
                     .navigationTitle("My Legend")
                     .navigationBarTitleDisplayMode(.large)
                 

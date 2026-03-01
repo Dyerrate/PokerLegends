@@ -11,7 +11,7 @@ import SwiftUI
 struct SelectGameMode: View {
     let gameCards = GameData.gameCardData
     @ObservedObject var pageController: PageController
-
+    @EnvironmentObject var userModel: UserModel
 
     var body: some View {
         NavigationStack {
@@ -32,6 +32,7 @@ struct SelectGameMode: View {
             }
             .navigationDestination(isPresented: $pageController.profilePage) {
                 ProfileView(pageController: pageController)
+                    .environmentObject(userModel)
                     .navigationTitle("My Legend")
                     .navigationBarTitleDisplayMode(.large)
             }

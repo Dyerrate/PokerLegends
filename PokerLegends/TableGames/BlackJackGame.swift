@@ -47,15 +47,18 @@ class BlackJackGame: @preconcurrency GameProtocol {
     private var equipmentIdToLogicCard: [EquipmentIdentifier: UUID] = [:]
     private var nextCardEquipmentIdCounter: Int = 2000
     private(set) var isReadyToStartFromLobby: Bool = false
+    
+    private let userModel: UserModel
 
     // Task handle for seat waiting cancellation
     var seatWaitTask: Task<Void, Never>? = nil
 
 
     // --- Initialization ---
-    init(numberOfDecks: Int) async {
+    init(numberOfDecks: Int, userModel: UserModel) async {
         print("BlackJackGame: Initializing...")
         print("BlackJackGame: Initializing with \(numberOfDecks) decks...")
+        self.userModel = userModel
         blackjackLogic = BlackjackLogicController(numberOfDecks: max(1, numberOfDecks))
         renderer = GameRenderer(typeOfGame: "blackJack")
         setup = GameSetup(root: renderer.root, currentGame: "blackJack")
@@ -174,14 +177,22 @@ class BlackJackGame: @preconcurrency GameProtocol {
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
               currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
         print("BlackJackGame: Player SplitHand")
-        blackjackLogic.playerAction(playerId: currentPlayerId, action: .splitHand)
+        if blackjackLogic.checkIfPlayerHasEnoughMoneyToDoubleDown(currentMoney: userModel.playerMoney!, playerId: currentPlayerId) {
+            blackjackLogic.playerAction(playerId: currentPlayerId, action: .splitHand)
+        } else {
+            print("Player id not have enough money with \(userModel.playerMoney!) to split")
+        }
     }
     
     func playerDoubleDown() {
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
               currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
         print("BlackJackGame: Player Double Down")
-        blackjackLogic.playerAction(playerId: currentPlayerId, action: .doubleDown)
+        if blackjackLogic.checkIfPlayerHasEnoughMoneyToDoubleDown(currentMoney: userModel.playerMoney!, playerId: currentPlayerId) {
+            blackjackLogic.playerAction(playerId: currentPlayerId, action: .doubleDown)
+        } else  {
+            print("Player did not have enough money with \(userModel.playerMoney!) to double down for the asked amount")
+        }
     }
     
     
@@ -189,6 +200,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
               currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
         print("BlackJackGame: Player Hits")
+        
         blackjackLogic.playerAction(playerId: currentPlayerId, action: .hit)
      }
     
@@ -476,6 +488,11 @@ class BlackJackGame: @preconcurrency GameProtocol {
 
     }
     
+    private func checkIfPlayerHasEnoughMoneyToPlaceBet(_ betAmount: Int) -> Bool {
+        guard let playerMoney = userModel.playerMoney else { return false }
+        return playerMoney >= Double(betAmount)
+    }
+    
     private func updateOutcomeVisuals(_ outcomes: [String: GameOutcome]) {
         print("BlackJackGame: Updating outcome visuals...")
         
@@ -488,19 +505,26 @@ class BlackJackGame: @preconcurrency GameProtocol {
         
         // Calculate win amount (you can customize this logic)
         let betAmount = Double(blackjackLogic.playerBets[localPlayerIdString] ?? 0)
-        print("BlackJackGame: playerAmount is \(betAmount)")
+        print("BlackJackGame: playerAmount is \(betAmount) + the localPlayerOutcome is \(localPlayerOutcome)")
         let winAmount: Double = {
             switch localPlayerOutcome {
             case .playerBlackjack:
-                return betAmount * 2.5 // Blackjack pays 3:2
+                var amount = betAmount * 2.5
+                userModel.addPlayerWinning(amount: amount)
+                return amount // Blackjack pays 3:2
             case .playerWin, .dealerBust:
-                return betAmount // Normal win pays 1:1
+                var amount = betAmount
+                userModel.addPlayerWinning(amount: amount)
+                return amount // Normal win pays 1:1
             case .push:
                 return betAmount // Get bet back
             default:
-                return 0.0 // Loss
+                userModel.takePlayerLosses(amount: betAmount)
+                return 0.0
+                // Loss
             }
         }()
+        
         
         // Show the outcome display (no more scores passed)
         renderer.showRoundOutcome(

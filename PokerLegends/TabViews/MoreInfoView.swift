@@ -11,7 +11,8 @@ import SwiftUI
 
 struct MoreInfoView: View {
     @ObservedObject var pageController: PageController
-    
+    @EnvironmentObject var userModel: UserModel
+
     var body: some View {
         NavigationStack {
             VStack{
@@ -53,6 +54,7 @@ struct MoreInfoView: View {
             }
             .navigationDestination(isPresented: $pageController.profilePage) {
                 ProfileView(pageController: pageController)
+                    .environmentObject(userModel)
                     .navigationTitle("My Legend")
                     .navigationBarTitleDisplayMode(.large)
             }

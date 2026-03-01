@@ -5,47 +5,56 @@
 //  Created by Samuel Dyer on 8/10/24.
 //
 
+
 import Foundation
 import AuthenticationServices
 import Combine
 import UIKit
 
-class UserManager: NSObject, ObservableObject {
-    
-    //TODO: this is just here to make sure we sign in and will need to make it turn off the loading icon when the request is finished
-    @Published var isLoggedIn = false
-    
-    func signInWithApple() {
-        self.isLoggedIn = true
-        let request = ASAuthorizationAppleIDProvider().createRequest()
-        request.requestedScopes = [.fullName, .email]
-        
-        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-        authorizationController.delegate = self
-        authorizationController.presentationContextProvider = self
-        authorizationController.performRequests()
+class UserManager: ObservableObject {
+    @Published var session: UserSession = .unauthenticated
+    private let signInService = AppleSignInService()
+  //  private let userService = CloudKitUser()
+
+    func signIn() {
+        self.session = .unauthenticated
+        /*
+        Task {
+            do {
+                let credential = try await signInService.startSignIn()
+                let appleUserId = credential.user
+                // Try existing user
+                if let record = try await userService.fetchUser(byAppleUserId: appleUserId),
+                   let currentUserModel = UserModel(record: record) {
+                    self.session = .authenticated(currentUserModel)
+                } else {
+                    // First-time sign-in: capture name/email if available
+                    let email = credential.email
+                    let fullName = PersonNameComponentsFormatter().string(from: credential.fullName ?? PersonNameComponents())
+                    let record = try await userService.createUser(appleUserId: appleUserId,
+                                                                  email: email,
+                                                                  fullName: fullName.isEmpty ? nil : fullName)
+                    guard let model = UserModel(record: record) else { throw NSError(domain: "Mapping", code: -1) }
+                    self.session = .authenticated(model)
+                }
+            } catch {
+                self.session = .failed(error.localizedDescription)
+            }
+         
+        }
+         */
+    }
+
+    func signOut() {
+        // optional: clear local session; CloudKit records remain
+        self.session = .unauthenticated
     }
 }
 
-extension UserManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        if authorization.credential is ASAuthorizationAppleIDCredential {
-            // Process user data, e.g., save in Keychain, and update UI
-            self.isLoggedIn = true
-        }
-    }
-
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        print("Authorization failed: \(error.localizedDescription)")
-    }
-
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        // Get the current active scene
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-            return ASPresentationAnchor()
-        }
-        
-        // Return the first window in the scene
-        return windowScene.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
-    }
+enum UserSession {
+    case unauthenticated
+    case loading
+    case authenticated(UserModel)
+    case failed(String)
 }
+

@@ -16,6 +16,7 @@ struct GameDisplayCard: View {
 
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
+    @EnvironmentObject var userModel: UserModel
     var gameCardInfo: GameCardModel
     
     var body: some View {
@@ -65,6 +66,7 @@ struct GameDisplayCard: View {
                         gameTitle: gameCardInfo.title,
                         gameImage: gameCardInfo.image
                     )
+                    .environmentObject(userModel)
                 }
     }
 }
