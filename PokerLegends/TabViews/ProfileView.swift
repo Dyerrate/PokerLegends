@@ -11,6 +11,7 @@ import SwiftUI
 struct ProfileView: View {
     
     @ObservedObject var pageController: PageController
+    @EnvironmentObject var userModel: UserModel
     
     //TODO: Add User model data to this to populate the information for each box
     var body: some View {
@@ -21,7 +22,7 @@ struct ProfileView: View {
                 Circle()
                     .fill(Color.black)
                     .frame(width: 100, height: 100)
-                Text("Yournamehere")
+                Text(userModel.username!)
                     .font(.title2)
             }
             .padding()
@@ -44,7 +45,7 @@ struct ProfileView: View {
                             Text("Total Winnings")
                                 .underline()
                                 .font(.title2)
-                            Text("$1,000,000")
+                            Text("$\(String(format: "%.2f", userModel.playerMicroData.totalWinnings))")
                         }
                         .padding()
                         HStack {
@@ -69,7 +70,7 @@ struct ProfileView: View {
                             Text("Total Losses")
                                 .underline()
                                 .font(.title2)
-                            Text("$1,000,000")
+                            Text("$\(String(format: "%.2f", userModel.playerMicroData.totalLosses))")
                         }
                         .padding()
                         HStack{
@@ -95,7 +96,7 @@ struct ProfileView: View {
                             Text("Largest Hand")
                                 .underline()
                                 .font(.title2)
-                            Text("$1,000,000,000")
+                            Text("$\(String(format: "%.2f", userModel.playerMicroData.largestPotWin))")
                         }
                         .padding()
                         HStack{
@@ -116,10 +117,10 @@ struct ProfileView: View {
                             Spacer()
                         }
                         VStack {
-                            Text("All in's")
+                            Text("Games Played")
                                 .underline()
                                 .font(.title2)
-                            Text("482")
+                            Text("\(userModel.playerMicroData.totalGamesPlayed)")
                         }
                         .padding()
                         HStack{

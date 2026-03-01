@@ -17,6 +17,7 @@ import Combine
 struct GameTopView: View {
     @Environment(\.realityKitScene) private var scene
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace // Added for close button
+    @Environment(\.openWindow) private var openWindow
 
     // Game state managed by BlackJackGame
     @State private var game: BlackJackGame? // Use specific type if possible
@@ -24,6 +25,8 @@ struct GameTopView: View {
     @State private var hoverSub: Cancellable?
     @State private var initialOffsetFromChipToTouch: SIMD3<Float>? = nil
     @EnvironmentObject var session: GameSession
+    @EnvironmentObject var userModel: UserModel
+
 
 
     // Name matching the entities in your Reality Composer Pro scene
@@ -100,6 +103,19 @@ struct GameTopView: View {
                     else if value.entity.name == "White_doubledown_Final" {
                         handleDoubleDown()
                     }
+                    // Add new entity handlers for separate windows
+                    else if value.entity.name == "menuButton" {
+                        openGameMenu()
+                    }
+                    else if value.entity.name == "statsButton" {
+                        openWindow(id: "game-stats")
+                    }
+                    else if value.entity.name == "profileButton" {
+                        openWindow(id: "player-profile")
+                    }
+                    else if value.entity.name == "settingsButton" {
+                        openWindow(id: "game-settings")
+                    }
                     else if value.entity.name == "Green_Stack_Final" {
                         Task {
                             await spawnChip(at: value.location3D, relativeTo: value.entity, tappedChipColor: "green")
@@ -161,18 +177,21 @@ struct GameTopView: View {
                             physicsBody.mode = .dynamic
                             physicsBody.linearDamping = 0.5
                             physicsBody.angularDamping = 0.5
-                            
                             chip.components.set(physicsBody)
-                            
                         }
-
                     }
-                    
                 )
                 // Add the toolbar only when the game is loaded
                 .toolbar() {
                     // Pass the specific BlackJackGame instance
                     GameToolBar(game: loadedGame)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HStack {
+                            // Show sync status
+                        }
+                    }
                 }
                 .tabletopGame(loadedGame.tabletopGame, parent: loadedGame.renderer.root)
                
@@ -184,11 +203,13 @@ struct GameTopView: View {
         .task {
             if game == nil { // Only initialize if not already done
                  print("GameTopView: Task started. Initializing BlackJackGame...")
-                let initializedGame = await BlackJackGame(numberOfDecks: session.settings.numberOfDecks)
+                let initializedGame = await BlackJackGame(numberOfDecks: session.settings.numberOfDecks, userModel: userModel)
                  self.game = initializedGame
                  self.activityManager = GroupActivityManager(tabletopGame: initializedGame.tabletopGame)
                  print("GameTopView: BlackJackGame and ActivityManager initialized.")
             }
+            
+            // Setup CloudKit tracking for UserModel
         }
     }
 
@@ -201,6 +222,11 @@ struct GameTopView: View {
     private func spawnChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) async {
         print("GameTopView 🔭: starting the spawnChip task")
         var newChip = game?.createPokerChip(at: position3D, relativeTo: reference, tappedChipColor: tappedChipColor)
+    }
+    
+    private func checkIfPlayerHasEnoughMoneyToPlaceBet(_ betAmount: Int) -> Bool {
+        guard let playerMoney = userModel.playerMoney else { return false }
+        return playerMoney >= Double(betAmount)
     }
     
     private func makeChipNonInteractive(_ chip: Entity) {
@@ -234,7 +260,25 @@ struct GameTopView: View {
     }
     
     private func handlePlayerBet(chipValue: Int) {
-        game?.blackjackLogic.placeBet(playerId: game!.tabletopGame.localPlayer.id.uuid.uuidString, amount: chipValue)
+        let betAmounts = Double(chipValue)
+        if checkIfPlayerHasEnoughMoneyToPlaceBet(chipValue) {
+            game?.blackjackLogic.placeBet(
+                playerId: game!.tabletopGame.localPlayer.id.uuid.uuidString,
+                amount: chipValue
+            )
+        } else {
+            showInsufficientFundsError()
+        }
+        // Place the bet in game logic
+        
+        print("💰 Bet placed: $\(chipValue).")
+    }
+    
+    /// Show error when player doesn't have sufficient funds
+    private func showInsufficientFundsError() {
+        // You can implement this as an alert, toast, or other UI feedback
+        print("❌ Insufficient funds for this bet!")
+        // TODO: Implement proper error UI
     }
 
     private func handleStandButton() {
@@ -249,6 +293,11 @@ struct GameTopView: View {
             // Optional: Add any other cleanup logic if needed
             game?.cleanupBeforeDismiss() // Example cleanup call
         }
+    }
+    
+    private func openGameMenu() {
+        print("GameTopView: Opening in-game menu window")
+        openWindow(id: "game-menu")
     }
 }
      // ← only builds for visionOS previews

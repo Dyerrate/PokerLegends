@@ -22,7 +22,7 @@ struct WelcomeDisplay: View {
                     .frame(width: 450, height: 75)
                     .padding()
                     .onTapGesture {
-                        userManager.signInWithApple()
+                        userManager.signIn()
                     }
             }
             

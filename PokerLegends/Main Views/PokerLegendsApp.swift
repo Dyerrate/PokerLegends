@@ -27,10 +27,57 @@ struct PokerLegendsApp: App {
         }
         .windowResizability(.contentSize)
         
-        ImmersiveSpace(id: "GameView") {
-            GameTopView(selectedGame: "blackJack")
+        // In-Game Menu Window
+        WindowGroup(id: "game-menu") {
+            InGameMenuView()
                 .environmentObject(session)
                 .environmentObject(userManager)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.plain)
+        
+        // Game Statistics Window
+        WindowGroup(id: "game-stats") {
+            GameStatsView()
+                .environmentObject(session)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.plain)
+        
+        // Player Profile Window
+        WindowGroup(id: "player-profile") {
+            PlayerProfileView()
+                .environmentObject(session)
+                .environmentObject(userManager)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.plain)
+        
+        // Game Settings Window
+        WindowGroup(id: "game-settings") {
+            GameSettingsView()
+                .environmentObject(session)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.plain)
+        
+        
+        
+        //GAME SPACE
+        ImmersiveSpace(id: "GameView") {
+            Group {
+                if case .authenticated(let userModel) = userManager.session {
+                    GameTopView(selectedGame: "blackJack")
+                        .environmentObject(session)
+                        .environmentObject(userModel)
+                } else {
+                    // Optionally, show a placeholder, loading, or error view
+                    Text("Please sign in to play.")
+                        .font(.title)
+                        .foregroundColor(.white)
+                        .padding()
+                }
+            }
         }
     
     }

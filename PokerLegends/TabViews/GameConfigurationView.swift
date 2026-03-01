@@ -13,6 +13,7 @@ struct GameConfigurationView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var session: GameSession
+    @EnvironmentObject var userModel: UserModel
     
     @State private var settings = GameSettings.default
     @State private var isLaunching = false
@@ -22,161 +23,128 @@ struct GameConfigurationView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background removed as requested
-//                LinearGradient(
-//                    colors: [.black, .gray.opacity(0.8)],
-//                    startPoint: .topLeading,
-//                    endPoint: .bottomTrailing
-//                )
-//                .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    ScrollView {
-                        VStack(spacing: 40) {
-                            // Header removed for simplified view
-//                            VStack(spacing: 10) {
-//                                Image(gameImage)
-//                                    .resizable()
-//                                    .aspectRatio(contentMode: .fit)
-//                                    .frame(height: 150)
-//                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-//                                    .shadow(radius: 10)
-//                                
-//                                Text("Configure Your Game")
-//                                    .font(.extraLargeTitle)
-//                                    .fontWeight(.bold)
-//                                
-//                                Text(gameTitle)
-//                                    .font(.title2)
-//                                    .foregroundColor(.secondary)
-//                            }
-//                            .padding(.top, 30)
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(spacing: 40) {
+                        // Header
+                        VStack(alignment: .center, spacing: 8) {
+                            Text("Black Jack Settings")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+
+                            Text("Customize your game before you start. You can review the basic rules here and visit the Info tab anytime for more help and strategy tips.")
+                                .font(.subheadline)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal)
+                        
+                        Spacer(minLength: 0)
+                        
+                        // SharePlay Promo
+                        VStack(spacing: 12) {
+                            Image(systemName: "person.3.fill")
+                                .font(.system(size: 40, weight: .semibold))
+                                .foregroundColor(.white)
+                                .symbolRenderingMode(.hierarchical)
+
+                            Text("Better with friends using SharePlay")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal)
+                        
+                        Spacer(minLength: 0)
+                        
+                        // Number of Decks
+                        VStack(alignment: .leading, spacing: 15) {
+                            Label("Number of Decks", systemImage: "square.stack.3d.up.fill")
+                                .font(.title2)
+                                .fontWeight(.bold)
                             
-                            // Theme selection removed for simplified view
-//                            VStack(alignment: .leading, spacing: 15) {
-//                                Label("Table Theme", systemImage: "paintbrush.fill")
-//                                    .font(.title2)
-//                                    .fontWeight(.bold)
-//                                
-//                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15) {
-//                                    ForEach(GameSettings.GameTheme.allCases, id: \.self) { theme in
-//                                        ThemeCard(
-//                                            theme: theme,
-//                                            isSelected: settings.theme == theme
-//                                        ) {
-//                                            settings.theme = theme
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            .padding(.horizontal)
-                            
-                            // Location selection removed for simplified view
-//                            VStack(alignment: .leading, spacing: 15) {
-//                                Label("Casino Location", systemImage: "location.fill")
-//                                    .font(.title2)
-//                                    .fontWeight(.bold)
-//                                
-//                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15) {
-//                                    ForEach(GameSettings.GameLocation.allCases, id: \.self) { location in
-//                                        LocationCard(
-//                                            location: location,
-//                                            isSelected: settings.location == location
-//                                        ) {
-//                                            settings.location = location
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            .padding(.horizontal)
-                            
-                            // Number of Decks
-                            VStack(alignment: .leading, spacing: 15) {
-                                Label("Number of Decks", systemImage: "square.stack.3d.up.fill")
+                            VStack {
+                                Text("Decks: \(settings.numberOfDecks)")
                                     .font(.title2)
                                     .fontWeight(.bold)
-                                
-                                VStack {
-                                    Text("Decks: \(settings.numberOfDecks)")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                    Slider(
-                                        value: Binding(
-                                            get: { Double(settings.numberOfDecks) },
-                                            set: { settings.numberOfDecks = Int($0.rounded()) }
-                                        ),
-                                        in: 1...8,
-                                        step: 1
-                                    )
-                                }
-                                
-                                Text("More decks = harder to count cards")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 5)
+                                Slider(
+                                    value: Binding(
+                                        get: { Double(settings.numberOfDecks) },
+                                        set: { settings.numberOfDecks = Int($0.rounded()) }
+                                    ),
+                                    in: 1...8,
+                                    step: 1
+                                )
                             }
-                            .padding(.horizontal)
                             
-                            Spacer(minLength: 40)
-                            
-//                            // Start button retained; green background removed
-//                            Button(action: launchGame) {
-//                                HStack {
-//                                    if isLaunching {
-//                                        ProgressView()
-//                                            .tint(.white)
-//                                    } else {
-//                                        Image(systemName: "play.fill")
-//                                        Text("Start Game")
-//                                            .fontWeight(.bold)
-//                                    }
-//                                }
-//                                .font(.title2)
-//                                .foregroundColor(.white)
-//                                .frame(maxWidth: 400)
-//                                .padding(.vertical, 20)
-//                                .shadow(radius: 10)
-//                            }
-//                            .disabled(isLaunching)
-//                            .padding(.horizontal)
-//                            .padding(.bottom, 30)
                         }
-                    }
-                    // Bottom pinned action area
-                    VStack {
-                        Button(action: launchGame) {
-                            HStack {
-                                if isLaunching {
-                                    ProgressView()
-                                        .tint(.white)
-                                } else {
-                                    Image(systemName: "play.fill")
-                                    Text("Start Game")
-                                        .fontWeight(.bold)
-                                }
-                            }
+                        .padding(.horizontal)
+                        
+                        Spacer(minLength: 0)
+                                            }
+                    .frame(maxWidth: 600) // cap width so content doesn’t stretch
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
+                    .padding(.horizontal)
+                    .containerRelativeFrame(.horizontal, alignment: .center)
+                }
+                
+                // Bottom pinned action area inside the sheet bounds
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Text("Close")
                             .font(.title2)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
+                            // Removed the background color as requested
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .shadow(radius: 10)
+                    }
+                    
+                    
+                    Button(action: launchGame) {
+                        HStack {
+                            if isLaunching {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "play.fill")
+                                Text("Start Game")
+                                    .fontWeight(.bold)
+                            }
                         }
-                        .disabled(isLaunching)
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        // Removed the background color as requested
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .shadow(radius: 10)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 24)
+                    .disabled(isLaunching)
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 24)
+                .containerRelativeFrame(.horizontal, alignment: .center)
+                .frame(maxWidth: 600)
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                    }
-                    .foregroundColor(.white)
+            .padding(.top) // respect top safe area for content
+        }
+        .background(
+            Image("feltAngleUno")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+        )
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
                 }
+                .foregroundColor(.white)
             }
         }
     }
@@ -306,15 +274,3 @@ struct DeckCountButton: View {
     }
 }
 
-#Preview("Game Config - Preview") {
-    // Provide a lightweight mock session if needed
-    let session = GameSession()
-    // Optionally set any default settings for preview
-    // session.settings = .default
-
-    return GameConfigurationView(
-        gameTitle: "Blackjack",
-        gameImage: "blackjackHeader" // Use an asset that exists in your project
-    )
-    .environmentObject(session)
-}
