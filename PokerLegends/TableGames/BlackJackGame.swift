@@ -173,9 +173,15 @@ class BlackJackGame: @preconcurrency GameProtocol {
      }
     
     //MARK: PLAYER ACTIONS
+    private func isLocalPlayersTurn(_ currentPlayerId: String) -> Bool {
+        let localPlayerId = tabletopGame.localPlayer.id.uuid.uuidString
+        let resolvedPlayerId = blackjackLogic.basePlayerId(for: currentPlayerId)
+        return resolvedPlayerId == localPlayerId
+    }
+    
     func playerSplitHand() {
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
-              currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+              isLocalPlayersTurn(currentPlayerId) else { return }
         print("BlackJackGame: Player SplitHand")
         if blackjackLogic.checkIfPlayerHasEnoughMoneyToDoubleDown(currentMoney: userModel.playerMoney!, playerId: currentPlayerId) {
             blackjackLogic.playerAction(playerId: currentPlayerId, action: .splitHand)
@@ -186,7 +192,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
     
     func playerDoubleDown() {
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
-              currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+              isLocalPlayersTurn(currentPlayerId) else { return }
         print("BlackJackGame: Player Double Down")
         if blackjackLogic.checkIfPlayerHasEnoughMoneyToDoubleDown(currentMoney: userModel.playerMoney!, playerId: currentPlayerId) {
             blackjackLogic.playerAction(playerId: currentPlayerId, action: .doubleDown)
@@ -198,7 +204,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
     
     func playerDidHit() { /* ... */
         guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
-              currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+              isLocalPlayersTurn(currentPlayerId) else { return }
         print("BlackJackGame: Player Hits")
         
         blackjackLogic.playerAction(playerId: currentPlayerId, action: .hit)
@@ -206,7 +212,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
     
     func playerDidStand() { /* ... */
          guard case .playerTurn(let currentPlayerId) = blackjackLogic.gameState,
-               currentPlayerId == tabletopGame.localPlayer.id.uuid.uuidString else { return }
+               isLocalPlayersTurn(currentPlayerId) else { return }
          print("BlackJackGame: Player Stands")
          blackjackLogic.playerAction(playerId: currentPlayerId, action: .stand)
      }
@@ -334,8 +340,22 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     // Generate Template Clone & Add to Scene
                     // The card data should have isFaceUp=true when dealt mid-game
                     let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
-                    renderer.addPlayerCard(currentCard: cloneCardFromTemplate, playerSeat: seatIndex, cardIndex: cardIndex)
+                    let handDisplayIndex = blackjackLogic.handDisplayIndex(for: playerId)
+                    renderer.addPlayerCard(
+                        currentCard: cloneCardFromTemplate,
+                        playerSeat: seatIndex,
+                        cardIndex: cardIndex,
+                        handOffsetIndex: handDisplayIndex
+                    )
                     print("  Added visual for NEW Player Card \(cardIndex) (\(card.description))")
+                } else if let existingEquipmentId = logicCardToEquipmentId[card.id] {
+                    let handDisplayIndex = blackjackLogic.handDisplayIndex(for: playerId)
+                    renderer.repositionPlayerCard(
+                        equipmentId: existingEquipmentId,
+                        playerSeat: seatIndex,
+                        cardIndex: cardIndex,
+                        handOffsetIndex: handDisplayIndex
+                    )
                 }
             }
             if(blackjackLogic.isSplittableHand(playerId: playerId)) {
@@ -405,7 +425,7 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     renderer.highlightPlayerArea(seatIndex: seatIndex, highlight: true)
                 }
                 // Enable Hit/Stand only for the local player whose turn it is
-                if playerId == tabletopGame.localPlayer.id.uuid.uuidString {
+                if isLocalPlayersTurn(playerId) {
                     // Check if player is already busted - don't enable if busted
                     if blackjackLogic.playerOutcomes[playerId] == nil {
                         // Only enable if no outcome yet
@@ -455,7 +475,13 @@ class BlackJackGame: @preconcurrency GameProtocol {
                         continue // Skip if entity creation fails
                     }
                     let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
-                    renderer.addPlayerCard(currentCard: cloneCardFromTemplate, playerSeat: seatIndex, cardIndex: cardIndex)
+                    let handDisplayIndex = blackjackLogic.handDisplayIndex(for: playerId)
+                    renderer.addPlayerCard(
+                        currentCard: cloneCardFromTemplate,
+                        playerSeat: seatIndex,
+                        cardIndex: cardIndex,
+                        handOffsetIndex: handDisplayIndex
+                    )
                     
                 }
             }
@@ -561,8 +587,9 @@ class BlackJackGame: @preconcurrency GameProtocol {
         let 🆔 = EquipmentIdentifier(nextCardEquipmentIdCounter); nextCardEquipmentIdCounter += 1; return 🆔
      }
     func getSeatIndex(for playerId: String) -> Int? { /* ... */
+        let resolvedPlayerId = blackjackLogic.basePlayerId(for: playerId)
         for (index, seat) in setup.seats.enumerated() {
-            if let occupantPlayerId = observer.playerId(in: seat.id), occupantPlayerId.uuid.uuidString == playerId { return index }
+            if let occupantPlayerId = observer.playerId(in: seat.id), occupantPlayerId.uuid.uuidString == resolvedPlayerId { return index }
         }
         print("BlackJackGame: WARNING - Could not find seat index for player ID \(playerId)"); return nil
      }
@@ -637,4 +664,3 @@ class BlackJackGame: @preconcurrency GameProtocol {
       //  seatWaitTask?.cancel()
      }
 }
-

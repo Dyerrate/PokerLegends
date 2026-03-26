@@ -42,7 +42,7 @@ final class UserModel: ObservableObject {
         let id = record.recordID
         let username = record["username"] as? String
         let email = record["email"] as? String
-        let playerMoney = record["playerBalance"] as? Double
+        let playerMoney = record["playerMoney"] as? Double
         let micro = PlayerMicroData(parentRecordId: id)
 
         self.init(

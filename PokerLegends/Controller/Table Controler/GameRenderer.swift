@@ -477,12 +477,14 @@ class GameRenderer: TabletopGame.RenderDelegate {
 
     
     //INFO: Final add players new card to table
-    func addPlayerCard(currentCard: Entity, playerSeat: Int, cardIndex: Int) {
+    func addPlayerCard(currentCard: Entity, playerSeat: Int, cardIndex: Int, handOffsetIndex: Int = 0) {
         
         guard let targetSlot = self.mainGameSceneEntity!.findEntity(named: "PlayerHandAreaMarker_\(playerSeat)") else {
             fatalError("⚠️ Couldn't find card slot!")
         }
-        let stackingOffset = SIMD3<Float>(Float(cardIndex) * 0.175, 0.00019, 0)
+        let handSpacing: Float = 0.12
+        let handBaseOffset = Float(handOffsetIndex) * handSpacing
+        let stackingOffset = SIMD3<Float>(handBaseOffset + Float(cardIndex) * 0.075, 0.00019, Float(handOffsetIndex) * 0.03)
         let worldTarget = targetSlot.convert(position: stackingOffset, to: nil)
         let gameScene = self.mainGameSceneEntity
         gameScene!.addChild(currentCard)
@@ -644,6 +646,27 @@ class GameRenderer: TabletopGame.RenderDelegate {
             self.pokerChipTray?.components.set(InputTargetComponent())
         }
         
+    }
+    
+    func repositionPlayerCard(equipmentId: EquipmentIdentifier, playerSeat: Int, cardIndex: Int, handOffsetIndex: Int = 0) {
+        guard let cardEntity = cardEntities[equipmentId] else { return }
+        guard let targetSlot = self.mainGameSceneEntity?.findEntity(named: "PlayerHandAreaMarker_\(playerSeat)") else { return }
+        
+        let handSpacing: Float = 0.12
+        let handBaseOffset = Float(handOffsetIndex) * handSpacing
+        let stackingOffset = SIMD3<Float>(handBaseOffset + Float(cardIndex) * 0.075, 0.00019, Float(handOffsetIndex) * 0.03)
+        let worldTarget = targetSlot.convert(position: stackingOffset, to: nil)
+        
+        cardEntity.move(
+            to: Transform(
+                scale: cardEntity.transform.scale,
+                rotation: cardEntity.transform.rotation,
+                translation: worldTarget
+            ),
+            relativeTo: nil,
+            duration: 0.35,
+            timingFunction: .easeInOut
+        )
     }
     
     func spawnPokerChip(at position3D: Point3D, relativeTo reference: Entity,tappedChipColor: String) -> Entity {
@@ -1189,4 +1212,3 @@ class GameRenderer: TabletopGame.RenderDelegate {
         root.children.removeAll()
     }
 }
-

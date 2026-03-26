@@ -103,6 +103,9 @@ struct GameTopView: View {
                     else if value.entity.name == "White_doubledown_Final" {
                         handleDoubleDown()
                     }
+                    else if value.entity.name == "White_split_Final" {
+                        handleSplitButton()
+                    }
                     // Add new entity handlers for separate windows
                     else if value.entity.name == "menuButton" {
                         openGameMenu()

@@ -64,6 +64,9 @@ class BlackjackLogicController: ObservableObject {
     private let numberOfDecks: Int // How many decks to use in the shoe
     private var currentPlayerIndex: Int = 0
     private var playerOriginalBetAmount: [String: Int] = [:]
+    private var splitHandCounters: [String: Int] = [:]
+    private var handIdsByBasePlayerId: [String: [String]] = [:]
+    private let splitHandSeparator = "::split::"
     
     weak var winningsDelegate: BlackjackWinningsDelegate?
     
@@ -85,6 +88,8 @@ class BlackjackLogicController: ObservableObject {
             playerBets[playerId] = 0 // Initialize bet
             playerOutcomes[playerId] = nil
             activePlayerIds.append(playerId) // Add to active list for the round
+            splitHandCounters[playerId] = 0
+            handIdsByBasePlayerId[playerId] = [playerId]
             print("Player \(playerId) added.")
 
             // --- Corrected Line ---
@@ -99,11 +104,17 @@ class BlackjackLogicController: ObservableObject {
     /// Removes a player from the game.
     /// - Parameter playerId: The identifier of the player to remove.
     func removePlayer(playerId: String) {
-        playerHands.removeValue(forKey: playerId)
-        playerBets.removeValue(forKey: playerId)
-        playerOutcomes.removeValue(forKey: playerId)
-        playersReadyAfterBetting.remove(playerId)
-        activePlayerIds.removeAll { $0 == playerId }
+        let basePlayerId = basePlayerId(for: playerId)
+        let handIds = handIdsByBasePlayerId[basePlayerId] ?? [basePlayerId]
+        for handId in handIds {
+            playerHands.removeValue(forKey: handId)
+            playerBets.removeValue(forKey: handId)
+            playerOutcomes.removeValue(forKey: handId)
+            playersReadyAfterBetting.remove(handId)
+        }
+        activePlayerIds.removeAll { handIds.contains($0) || $0 == basePlayerId }
+        handIdsByBasePlayerId.removeValue(forKey: basePlayerId)
+        splitHandCounters.removeValue(forKey: basePlayerId)
         print("Player \(playerId) removed.")
         // If the removed player was the current player, advance the turn
         if case .playerTurn(let currentId) = gameState, currentId == playerId {
@@ -138,6 +149,10 @@ class BlackjackLogicController: ObservableObject {
             playerHands[id]?.reset()
             playerBets[id] = 0 // Reset bets too
             print("starting new round wipe playerbets")
+        }
+        for id in activePlayerIds {
+            splitHandCounters[id] = 0
+            handIdsByBasePlayerId[id] = [id]
         }
 
         // 2. Prepare the deck/shoe if needed
@@ -331,7 +346,24 @@ class BlackjackLogicController: ObservableObject {
     func isSplittableHand(playerId: String) -> Bool {
         //TODO: Add logic to check if player has enough money to split his hands
         guard let hand = playerHands[playerId] else { return false }
+        guard hand.cards.count == 2 else { return false }
         return hand.isSplitable
+    }
+    
+    func basePlayerId(for handId: String) -> String {
+        if let range = handId.range(of: splitHandSeparator) {
+            return String(handId[..<range.lowerBound])
+        }
+        return handId
+    }
+    
+    func handDisplayIndex(for handId: String) -> Int {
+        let baseId = basePlayerId(for: handId)
+        guard let handIds = handIdsByBasePlayerId[baseId],
+              let index = handIds.firstIndex(of: handId) else {
+            return 0
+        }
+        return index
     }
 
     /// Handles a player's action (Hit or Stand).
@@ -352,8 +384,67 @@ class BlackjackLogicController: ObservableObject {
         switch action {
             
         case .splitHand:
-            print("this splitting hand")
-        //TODO: Create logic to create a new hand and assign the hand to the same logged in user.
+            guard hand.cards.count == 2, hand.isSplitable else {
+                print("Player \(playerId) cannot split this hand.")
+                return
+            }
+            guard let betAmount = playerBets[playerId], betAmount > 0 else {
+                print("Player \(playerId) has no bet to split.")
+                return
+            }
+            guard let firstReplacementCard = dealCard(), let secondReplacementCard = dealCard() else {
+                print("Not enough cards in the shoe to split hand.")
+                return
+            }
+            
+            let baseId = basePlayerId(for: playerId)
+            let splitIndex = (splitHandCounters[baseId] ?? 0) + 1
+            splitHandCounters[baseId] = splitIndex
+            let splitHandId = "\(baseId)\(splitHandSeparator)\(splitIndex)"
+            
+            var firstHand = Hand()
+            var secondHand = Hand()
+            
+            var firstOriginalCard = hand.cards[0]
+            firstOriginalCard.isFaceUp = true
+            var secondOriginalCard = hand.cards[1]
+            secondOriginalCard.isFaceUp = true
+            var firstNewCard = firstReplacementCard
+            firstNewCard.isFaceUp = true
+            var secondNewCard = secondReplacementCard
+            secondNewCard.isFaceUp = true
+            
+            firstHand.addCard(firstOriginalCard)
+            firstHand.addCard(firstNewCard)
+            secondHand.addCard(secondOriginalCard)
+            secondHand.addCard(secondNewCard)
+            
+            playerHands[playerId] = firstHand
+            playerHands[splitHandId] = secondHand
+            playerBets[splitHandId] = betAmount
+            playerOutcomes[splitHandId] = nil
+            playerOriginalBetAmount[splitHandId] = playerOriginalBetAmount[playerId] ?? betAmount
+            
+            var hands = handIdsByBasePlayerId[baseId] ?? [playerId]
+            if !hands.contains(playerId) {
+                hands.insert(playerId, at: 0)
+            }
+            if let existingIndex = hands.firstIndex(of: splitHandId) {
+                hands.remove(at: existingIndex)
+            }
+            let insertionIndex = min(handDisplayIndex(for: playerId) + 1, hands.count)
+            hands.insert(splitHandId, at: insertionIndex)
+            handIdsByBasePlayerId[baseId] = hands
+            
+            if let currentIndex = activePlayerIds.firstIndex(of: playerId) {
+                activePlayerIds.insert(splitHandId, at: currentIndex + 1)
+            } else {
+                activePlayerIds.append(splitHandId)
+            }
+            
+            print("Player \(playerId) split into hand IDs \(playerId) and \(splitHandId).")
+            print("Hand \(playerId): \(firstHand.description)")
+            print("Hand \(splitHandId): \(secondHand.description)")
             
             
         case .doubleDown:
@@ -563,8 +654,8 @@ class BlackjackLogicController: ObservableObject {
     }
 
     func checkIfPlayerHasEnoughMoneyToDoubleDown(currentMoney: Double, playerId: String) -> Bool {
-        
-        return currentMoney >= Double(playerOriginalBetAmount[playerId]!) * 2
+        let requiredAmount = Double(playerOriginalBetAmount[playerId] ?? playerBets[playerId] ?? 0) * 2
+        return currentMoney >= requiredAmount
     }
     
     
@@ -591,6 +682,10 @@ class BlackjackLogicController: ObservableObject {
             playerHands[id]?.reset()
             playerBets[id] = 0 // Reset bets too
         }
+        for id in activePlayerIds {
+            splitHandCounters[id] = 0
+            handIdsByBasePlayerId[id] = [id]
+        }
         // Reset shoe? Or keep it for next round? Let's keep it for now.
         // shoe.removeAll()
         // deck = shoe
@@ -600,4 +695,3 @@ class BlackjackLogicController: ObservableObject {
     }
     
 }
-
