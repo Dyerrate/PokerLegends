@@ -16,6 +16,7 @@
 		58128B1D2C56BD9A00E9AA9B /* RewardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B1C2C56BD9A00E9AA9B /* RewardViewModel.swift */; };
 		58128B1F2C56C3B200E9AA9B /* RewardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58128B1E2C56C3B200E9AA9B /* RewardView.swift */; };
 		5847DBB62D8254F40008CD6C /* LogicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5847DBB52D8254E30008CD6C /* LogicController.swift */; };
+		58592D4D2F7990DE002C7A62 /* LoginStreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58592D4C2F7990DE002C7A62 /* LoginStreakService.swift */; };
 		5868EB252CBB24DB004D8B7F /* BlackJackProject in Frameworks */ = {isa = PBXBuildFile; productRef = 5868EB242CBB24DB004D8B7F /* BlackJackProject */; };
 		5868EB272CBC4306004D8B7F /* GameEquipment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5868EB262CBC42FB004D8B7F /* GameEquipment.swift */; };
 		5868EB2A2CBC72A5004D8B7F /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5868EB292CBC72A3004D8B7F /* Utils.swift */; };
@@ -78,6 +79,7 @@
 		58128B1E2C56C3B200E9AA9B /* RewardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardView.swift; sourceTree = "<group>"; };
 		5847DBB52D8254E30008CD6C /* LogicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicController.swift; sourceTree = "<group>"; };
 		5857863E2F548BEA00A8776B /* PokerLegends.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PokerLegends.entitlements; sourceTree = "<group>"; };
+		58592D4C2F7990DE002C7A62 /* LoginStreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStreakService.swift; sourceTree = "<group>"; };
 		5868EB222CBB22C5004D8B7F /* BlackJackProject */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = BlackJackProject; sourceTree = "<group>"; };
 		5868EB262CBC42FB004D8B7F /* GameEquipment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEquipment.swift; sourceTree = "<group>"; };
 		5868EB292CBC72A3004D8B7F /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
@@ -144,6 +146,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		58592D4B2F7990D2002C7A62 /* Streak */ = {
+			isa = PBXGroup;
+			children = (
+				58592D4C2F7990DE002C7A62 /* LoginStreakService.swift */,
+			);
+			path = Streak;
+			sourceTree = "<group>";
+		};
 		5868EB2B2CBC76A1004D8B7F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -252,6 +262,7 @@
 				589AE34A2C67C36500705B0E /* UserManager.swift */,
 				5847DBB52D8254E30008CD6C /* LogicController.swift */,
 				589AE3552C67E50500705B0E /* PageController.swift */,
+				58592D4B2F7990D2002C7A62 /* Streak */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -447,6 +458,7 @@
 				587E5A3A2F1D8BEC0057A99E /* QuickMenuOrnament.swift in Sources */,
 				5875FA502EF39A4A004A4AB3 /* AppleSignInService.swift in Sources */,
 				5868EB2A2CBC72A5004D8B7F /* Utils.swift in Sources */,
+				58592D4D2F7990DE002C7A62 /* LoginStreakService.swift in Sources */,
 				5882D08F2C51E44300A39613 /* MoreInfoView.swift in Sources */,
 				587E5A322F1D8B2F0057A99E /* GameStatsView.swift in Sources */,
 				5882D0B52C5479F500A39613 /* GameDisplayCard.swift in Sources */,

@@ -18,6 +18,11 @@ final class UserModel: ObservableObject {
     @Published var email: String?
     @Published var playerMoney: Double?
     @Published var playerMicroData: PlayerMicroData
+    @Published var loginStreakCount: Int
+    @Published var lastLoginDate: Date?
+
+    /// Weak reference so UserModel can trigger CloudKit syncs without owning UserManager.
+    weak var userManager: UserManager?
 
     // Designated initializer for manual creation (optional but useful)
     init(
@@ -26,7 +31,9 @@ final class UserModel: ObservableObject {
         username: String? = nil,
         email: String? = nil,
         playerMoney: Double? = nil,
-        playerMicroData: PlayerMicroData
+        playerMicroData: PlayerMicroData,
+        loginStreakCount: Int = 0,
+        lastLoginDate: Date? = nil
     ) {
         self.id = id
         self.appleUserId = appleUserId
@@ -34,6 +41,8 @@ final class UserModel: ObservableObject {
         self.email = email
         self.playerMoney = playerMoney
         self.playerMicroData = playerMicroData
+        self.loginStreakCount = loginStreakCount
+        self.lastLoginDate = lastLoginDate
     }
 
     // Convenience initializer from CloudKit record
@@ -43,6 +52,8 @@ final class UserModel: ObservableObject {
         let username = record["username"] as? String
         let email = record["email"] as? String
         let playerMoney = record["playerMoney"] as? Double
+        let loginStreakCount = record["loginStreakCount"] as? Int ?? 0
+        let lastLoginDate = record["lastLoginDate"] as? Date
         let micro = PlayerMicroData(parentRecordId: id)
 
         self.init(
@@ -51,7 +62,9 @@ final class UserModel: ObservableObject {
             username: username,
             email: email,
             playerMoney: playerMoney,
-            playerMicroData: micro
+            playerMicroData: micro,
+            loginStreakCount: loginStreakCount,
+            lastLoginDate: lastLoginDate
         )
     }
 

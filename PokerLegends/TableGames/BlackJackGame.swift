@@ -340,6 +340,8 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     // Generate Template Clone & Add to Scene
                     // The card data should have isFaceUp=true when dealt mid-game
                     let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
+                    // Store the visible clone so repositionPlayerCard can find it later (e.g. after a split)
+                    renderer.cardEntities[equipmentId] = cloneCardFromTemplate
                     let handDisplayIndex = blackjackLogic.handDisplayIndex(for: playerId)
                     renderer.addPlayerCard(
                         currentCard: cloneCardFromTemplate,
@@ -350,11 +352,14 @@ class BlackJackGame: @preconcurrency GameProtocol {
                     print("  Added visual for NEW Player Card \(cardIndex) (\(card.description))")
                 } else if let existingEquipmentId = logicCardToEquipmentId[card.id] {
                     let handDisplayIndex = blackjackLogic.handDisplayIndex(for: playerId)
+                    // Use a longer duration when sliding existing cards apart for a split
+                    let duration: TimeInterval = handDisplayIndex > 0 ? 0.6 : 0.35
                     renderer.repositionPlayerCard(
                         equipmentId: existingEquipmentId,
                         playerSeat: seatIndex,
                         cardIndex: cardIndex,
-                        handOffsetIndex: handDisplayIndex
+                        handOffsetIndex: handDisplayIndex,
+                        animationDuration: duration
                     )
                 }
             }
@@ -475,6 +480,8 @@ class BlackJackGame: @preconcurrency GameProtocol {
                         continue // Skip if entity creation fails
                     }
                     let cloneCardFromTemplate = renderer.generateCardTemplateEntity(currentCardEntity: cardEntity)
+                    // Store the visible clone so repositionPlayerCard can find it later (e.g. after a split)
+                    renderer.cardEntities[equipmentId] = cloneCardFromTemplate
                     let handDisplayIndex = blackjackLogic.handDisplayIndex(for: playerId)
                     renderer.addPlayerCard(
                         currentCard: cloneCardFromTemplate,

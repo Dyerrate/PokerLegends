@@ -648,7 +648,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
         
     }
     
-    func repositionPlayerCard(equipmentId: EquipmentIdentifier, playerSeat: Int, cardIndex: Int, handOffsetIndex: Int = 0) {
+    func repositionPlayerCard(equipmentId: EquipmentIdentifier, playerSeat: Int, cardIndex: Int, handOffsetIndex: Int = 0, animationDuration: TimeInterval = 0.35) {
         guard let cardEntity = cardEntities[equipmentId] else { return }
         guard let targetSlot = self.mainGameSceneEntity?.findEntity(named: "PlayerHandAreaMarker_\(playerSeat)") else { return }
         
@@ -664,7 +664,7 @@ class GameRenderer: TabletopGame.RenderDelegate {
                 translation: worldTarget
             ),
             relativeTo: nil,
-            duration: 0.35,
+            duration: animationDuration,
             timingFunction: .easeInOut
         )
     }

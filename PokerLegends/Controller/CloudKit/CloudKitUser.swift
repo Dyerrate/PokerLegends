@@ -37,6 +37,8 @@ struct CloudKitUserService {
         static let emailKey = "email"
         static let usernameKey = "username"
         static let playerMoneyKey = "playerMoney"
+        static let loginStreakCountKey = "loginStreakCount"
+        static let lastLoginDateKey = "lastLoginDate"
     }
 
     /// Fetch a user record by Apple user ID in the private database.
@@ -87,6 +89,24 @@ struct CloudKitUserService {
         let saved = try await db.save(record)
         print("[CloudKitUserService] createUser saved record id=\(saved.recordID.recordName)")
         return saved
+    }
+
+    /// Update the playerMoney field on an existing record.
+    func updatePlayerBalance(recordId: CKRecord.ID, newBalance: Double) async throws {
+        print("[CloudKitUserService] updatePlayerBalance: fetching record \(recordId.recordName)")
+        let record = try await db.record(for: recordId)
+        record[Constants.playerMoneyKey] = newBalance as CKRecordValue
+        let saved = try await db.save(record)
+        print("[CloudKitUserService] updatePlayerBalance: saved balance=\(newBalance) on record \(saved.recordID.recordName)")
+    }
+
+    /// Persist updated login streak fields to the existing record.
+    func updateLoginStreak(recordId: CKRecord.ID, newStreak: Int, loginDate: Date) async throws {
+        let record = try await db.record(for: recordId)
+        record[Constants.loginStreakCountKey] = newStreak as CKRecordValue
+        record[Constants.lastLoginDateKey] = loginDate as CKRecordValue
+        let saved = try await db.save(record)
+        print("[CloudKitUserService] updateLoginStreak: streak=\(newStreak) saved on record \(saved.recordID.recordName)")
     }
 
     /// Fetch the user if it exists, otherwise create a new one.
